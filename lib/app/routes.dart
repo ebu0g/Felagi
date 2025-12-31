@@ -23,8 +23,8 @@ import '../features/admin/screens/approve_pharmacy.dart';
 import '../features/admin/screens/manage_admins.dart';
 import '../features/admin/screens/settings_screen.dart';
 import '../features/admin/controllers/admin_controller.dart';
-import '../features/pharmacy/models/pharmacy.dart';  // <-- Add this
-
+import '../features/pharmacy/models/pharmacy.dart'; // <-- Add this
+import '../features/patient/screens/edit_patient_profile.dart';
 
 class Routes {
   static const home = '/';
@@ -48,6 +48,7 @@ class Routes {
   static const approvePharmacy = '/approve-pharmacy';
   static const manageAdmins = '/manage-admins';
   static const settings = '/settings';
+  static const editPatientProfile = '/editPatientProfile';
 }
 
 // Static routes
@@ -65,48 +66,44 @@ final Map<String, WidgetBuilder> appRoutes = {
   Routes.orderDetails: (context) => const OrderDetailsScreen(),
   Routes.pharmacyDashboard: (context) => const PharmacyDashboard(),
   Routes.addMedicine: (context) => const AddMedicineScreen(),
+  Routes.editPatientProfile: (context) => const EditPatientProfile(),
   //Routes.manageStock: (context) => const ManageStockScreen(),
-  
+
   // Admin Screens with Providers
   Routes.adminDashboard: (context) => const AdminDashboard(),
-  
+
   Routes.approvePharmacy: (context) => ChangeNotifierProvider(
-        create: (_) => AdminController(),
-        builder: (context, child) => const ApprovePharmacyScreen(),
-      ),
+    create: (_) => AdminController(),
+    builder: (context, child) => const ApprovePharmacyScreen(),
+  ),
 
   Routes.manageAdmins: (context) => ChangeNotifierProvider(
-        create: (_) => AdminController(),
-        builder: (context, child) => const ManageAdminsScreen(),
-      ),
+    create: (_) => AdminController(),
+    builder: (context, child) => const ManageAdminsScreen(),
+  ),
 
   Routes.settings: (context) => ChangeNotifierProvider(
-        create: (_) => AdminController(),
-        builder: (context, child) => const SettingsScreen(), // remove const here
-      ),
-
+    create: (_) => AdminController(),
+    builder: (context, child) => const SettingsScreen(), // remove const here
+  ),
 };
-
 
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
-
     // ================= PHARMACY PROFILE =================
-case Routes.pharmacyProfile:
-  final args = settings.arguments;
+    case Routes.pharmacyProfile:
+      final args = settings.arguments;
 
-  if (args != null && args is Pharmacy) {
-    return MaterialPageRoute(
-      builder: (_) => PharmacyProfileScreen(pharmacy: args),
-    );
-  }
+      if (args != null && args is Pharmacy) {
+        return MaterialPageRoute(
+          builder: (_) => PharmacyProfileScreen(pharmacy: args),
+        );
+      }
 
-  return MaterialPageRoute(
-    builder: (_) => const Scaffold(
-      body: Center(child: Text('No pharmacy selected')),
-    ),
-  );
-
+      return MaterialPageRoute(
+        builder: (_) =>
+            const Scaffold(body: Center(child: Text('No pharmacy selected'))),
+      );
 
     // ================= EDIT PHARMACY =================
     case Routes.editPharmacyProfile:
@@ -143,11 +140,8 @@ case Routes.pharmacyProfile:
       }
 
       return MaterialPageRoute(
-        builder: (_) => EditMedicineScreen(
-          name: name,
-          price: price,
-          quantity: quantity,
-        ),
+        builder: (_) =>
+            EditMedicineScreen(name: name, price: price, quantity: quantity),
       );
 
     // ================= ADMIN =================
@@ -179,28 +173,25 @@ case Routes.pharmacyProfile:
       );
 
     // ================= MANAGE STOCK =================
-case Routes.manageStock:
-  final args = settings.arguments;
+    case Routes.manageStock:
+      final args = settings.arguments;
 
-  if (args != null && args is Pharmacy) {
-    return MaterialPageRoute(
-      builder: (_) => ManageStockScreen(pharmacy: args),
-    );
-  }
+      if (args != null && args is Pharmacy) {
+        return MaterialPageRoute(
+          builder: (_) => ManageStockScreen(pharmacy: args),
+        );
+      }
 
-  return MaterialPageRoute(
-    builder: (_) => const Scaffold(
-      body: Center(child: Text('No pharmacy selected')),
-    ),
-  );
-
+      return MaterialPageRoute(
+        builder: (_) =>
+            const Scaffold(body: Center(child: Text('No pharmacy selected'))),
+      );
 
     // ================= FALLBACK =================
     default:
       return MaterialPageRoute(
-        builder: (_) => const Scaffold(
-          body: Center(child: Text('Route not found')),
-        ),
+        builder: (_) =>
+            const Scaffold(body: Center(child: Text('Route not found'))),
       );
   }
 }

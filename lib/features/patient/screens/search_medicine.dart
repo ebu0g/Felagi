@@ -81,7 +81,6 @@ class _SearchMedicineState extends State<SearchMedicine> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Search Medicine')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

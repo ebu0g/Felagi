@@ -1,90 +1,103 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
+import '../../../core/constants/colors.dart';
 
-class PatientProfile extends StatelessWidget {
+class PatientProfile extends StatefulWidget {
   const PatientProfile({super.key});
+
+  @override
+  State<PatientProfile> createState() => _PatientProfileState();
+}
+
+class _PatientProfileState extends State<PatientProfile> {
+  // Temporary local data (later replace with Firebase)
+  String name = 'Patient Name';
+  String email = 'patient@email.com';
+  String phone = '+251 900 000 000';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Profile'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
 
-            // Profile Icon
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 👤 Profile Avatar
             const CircleAvatar(
-              radius: 45,
-              backgroundColor: AppColors.primary,
+              radius: 50,
+              backgroundColor: Color(0xFFDFF2EA),
               child: Icon(
                 Icons.person,
                 size: 50,
-                color: Colors.white,
+                color: AppColors.primary,
               ),
             ),
 
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
 
-            // User Name
-            const Text(
-              'Patient Name',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            // 📛 Name
+            Text(
+              'Name: $name',
+              style: const TextStyle(fontSize: 18),
             ),
 
-            const SizedBox(height: 5),
+            const SizedBox(height: 10),
 
-            // Email
-            const Text(
-              'patient@email.com',
-              style: TextStyle(color: Colors.grey),
+            // 📧 Email
+            Text(
+              'Email: $email',
+              style: const TextStyle(fontSize: 18),
+            ),
+
+            const SizedBox(height: 10),
+
+            // 📞 Phone
+            Text(
+              'Phone: $phone',
+              style: const TextStyle(fontSize: 18),
             ),
 
             const SizedBox(height: 30),
 
-            // Settings List
-            ListTile(
-              leading: const Icon(Icons.favorite),
-              title: const Text('Favorite Pharmacies'),
-              onTap: () {},
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () {},
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.help),
-              title: const Text('Help & Support'),
-              onTap: () {},
-            ),
-
-            const Spacer(),
-
-            // Logout Button
+            // ✏️ Edit Profile Button
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
-                onPressed: () {
-                  Navigator.pushNamedAndRemoveUntil(
+                onPressed: () async {
+                  final result = await Navigator.pushNamed(
                     context,
-                    Routes.login,
-                    (route) => false,
+                    Routes.editPatientProfile,
+                    arguments: {
+                      'name': name,
+                      'email': email,
+                      'phone': phone,
+                    },
                   );
+
+                  if (result != null && result is Map<String, String>) {
+                    setState(() {
+                      name = result['name']!;
+                      email = result['email']!;
+                      phone = result['phone']!;
+                    });
+                  }
                 },
-                child: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Edit Profile',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],

@@ -1,3 +1,3 @@
 class AppStrings {
-  static const String appName = 'Medicine\nAvailability Finder';
+  static const String appName = 'Felagi\nMedicine Availability Finder';
 }

@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacementNamed(context, Routes.adminDashboard);
           break;
         case 'patient':
-          Navigator.pushReplacementNamed(context, Routes.patientHome);
+          Navigator.pushReplacementNamed(context, Routes.patientNav);
           break;
         case 'pharmacy':
           Navigator.pushReplacementNamed(context, Routes.pharmacyDashboard);

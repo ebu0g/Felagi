@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1064287787074",
+    "project_id": "felagi-81c19",
+    "storage_bucket": "felagi-81c19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1064287787074:android:87c5652071212c7fcf35db",
+        "android_client_info": {
+          "package_name": "com.example.felagi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCxgdbGZ0FRVLWDFyrez3k0ViJV4T3MAt4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
