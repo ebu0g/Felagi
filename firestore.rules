@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Users collection - users can read/write their own profile
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      
+      // Medicines subcollection - users can manage their own medicines
+      match /medicines/{medicineId} {
+        allow read: if isAuthenticated(); // Allow authenticated users to read (for search)
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+    
+    // CollectionGroup query for medicines (search functionality)
+    // This allows searching across all medicines subcollections
+    match /{path=**}/medicines/{medicineId} {
+      allow read: if isAuthenticated();
+    }
+  }
+}
+

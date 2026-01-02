@@ -38,7 +38,19 @@ class AuthController {
 
       debugPrint('Registration successful');
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message ?? 'Registration failed');
+      debugPrint('FirebaseAuthException: ${e.code} - ${e.message}');
+      throw Exception(e.message ?? 'Registration failed: ${e.code}');
+    } catch (e) {
+      debugPrint('Registration error: $e');
+      // If Firestore write fails but Auth user was created, delete the Auth user
+      if (_auth.currentUser != null) {
+        try {
+          await _auth.currentUser!.delete();
+        } catch (deleteError) {
+          debugPrint('Failed to delete auth user: $deleteError');
+        }
+      }
+      throw Exception('Registration failed: ${e.toString()}');
     }
   }
 
@@ -58,15 +70,24 @@ class AuthController {
       final doc = await _firestore.collection('users').doc(uid).get();
 
       if (!doc.exists) {
-        throw Exception('User profile not found');
+        debugPrint('User profile not found in Firestore for uid: $uid');
+        throw Exception('User profile not found. Please register again.');
       }
 
       final role = doc['role'];
-      // Removed the isApproved check completely
+      if (role == null || role.toString().isEmpty) {
+        debugPrint('Role is null or empty for uid: $uid');
+        throw Exception('User role not found in profile');
+      }
 
-      return role;
+      debugPrint('Login successful for role: $role');
+      return role.toString();
     } on FirebaseAuthException catch (e) {
-      throw Exception(e.message ?? 'Login failed');
+      debugPrint('FirebaseAuthException: ${e.code} - ${e.message}');
+      throw Exception(e.message ?? 'Login failed: ${e.code}');
+    } catch (e) {
+      debugPrint('Login error: $e');
+      throw Exception('Login failed: ${e.toString()}');
     }
   }
 
