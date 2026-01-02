@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class PatientHome extends StatelessWidget {
   const PatientHome({super.key});
@@ -52,7 +53,8 @@ class PatientHome extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout, color: Colors.black),
-                        onPressed: () {
+                        onPressed: () async {
+                          await AuthController().logout();
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             Routes.home,

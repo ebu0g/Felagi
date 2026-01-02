@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 //import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
 import '../controllers/pharmacy_controller.dart';
-
+import '../../auth/controllers/auth_controller.dart';
 
 class PharmacyDashboard extends StatelessWidget {
   const PharmacyDashboard({super.key});
@@ -19,7 +19,8 @@ class PharmacyDashboard extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.grey),
-            onPressed: () {
+            onPressed: () async {
+              await AuthController().logout();
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 Routes.home,

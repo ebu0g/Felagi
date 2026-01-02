@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/colors.dart';
-import '../controllers/pharmacy_controller.dart';
 import '../models/medicine.dart';
 
 class AddMedicineScreen extends StatefulWidget {
@@ -17,6 +18,9 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -25,48 +29,64 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final name = _nameController.text.trim();
-      final price = double.tryParse(_priceController.text.trim()) ?? 0.0;
-      final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
+Future<void> _submitForm() async {
+  if (!_formKey.currentState!.validate()) return;
 
-      final med = Medicine(name: name, price: price, quantity: quantity);
+  final name = _nameController.text.trim();
+  final price = double.tryParse(_priceController.text.trim()) ?? 0.0;
+  final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
 
-      final controller = PharmacyController();
-      if (controller.pharmacies.isNotEmpty) {
-        controller.addMedicine(controller.pharmacies.first.name, med);
+  final user = _auth.currentUser;
+  if (user == null) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Medicine added to pharmacy'),
-            backgroundColor: Colors.green,
-          ),
-        );
+  try {
+    // Add medicine to Firestore
+    final docRef = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('medicines')
+        .add({
+      'name': name,
+      'name_lower': name.toLowerCase(), // 🔑 for case-insensitive search
+      'price': price,
+      'quantity': quantity,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
-        // Clear fields
-        _nameController.clear();
-        _priceController.clear();
-        _quantityController.clear();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No pharmacy available to add medicine'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    // Create Medicine object with generated ID
+    final med = Medicine(
+      id: docRef.id,
+      name: name,
+      price: price,
+      quantity: quantity,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Medicine added successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Clear fields
+    _nameController.clear();
+    _priceController.clear();
+    _quantityController.clear();
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to add medicine: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Add Medicine',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Add Medicine', style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primary,
       ),
       body: Padding(
@@ -75,7 +95,6 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
           key: _formKey,
           child: ListView(
             children: [
-              // 💊 Medicine Name
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -83,17 +102,10 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   prefixIcon: Icon(Icons.medication),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Medicine name is required';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    value == null || value.trim().isEmpty ? 'Medicine name is required' : null,
               ),
-
               const SizedBox(height: 16),
-
-              // 💰 Price
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
@@ -103,19 +115,12 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Price is required';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Price is required';
+                  if (double.tryParse(value) == null) return 'Enter a valid number';
                   return null;
                 },
               ),
-
               const SizedBox(height: 16),
-
-              // 📦 Quantity
               TextFormField(
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
@@ -125,19 +130,12 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Quantity is required';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Enter a valid number';
-                  }
+                  if (value == null || value.isEmpty) return 'Quantity is required';
+                  if (int.tryParse(value) == null) return 'Enter a valid number';
                   return null;
                 },
               ),
-
               const SizedBox(height: 30),
-
-              // ✅ Submit Button
               SizedBox(
                 height: 50,
                 child: ElevatedButton(
@@ -148,10 +146,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                     ),
                   ),
                   onPressed: _submitForm,
-                  child: const Text(
-                    'Add Medicine',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  child: const Text('Add Medicine', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ],

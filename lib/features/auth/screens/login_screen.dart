@@ -3,6 +3,7 @@ import '../../../core/constants/colors.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_textfield.dart';
 import '../../../app/routes.dart';
+import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,44 +23,44 @@ class _LoginScreenState extends State<LoginScreen> {
     {'email': 'pharmacy@felagi.com', 'password': 'pharmacy123', 'role': 'pharmacy'},
   ];
 
-  void login() {
-    final email = emailController.text.trim();
-    final password = passwordController.text;
+final AuthController authController = AuthController(); // add at the top of the class
 
-    final user = mockUsers.firstWhere(
-      (u) => u['email'] == email && u['password'] == password,
-      orElse: () => {},
+void login() async {
+  final email = emailController.text.trim();
+  final password = passwordController.text;
+
+  try {
+    final role = await authController.login(
+      email: email,
+      password: password,
     );
 
-    if (user.isNotEmpty) {
-      switch (user['role']) {
-        case 'admin':
-          Navigator.pushReplacementNamed(context, Routes.adminDashboard);
-          break;
-        case 'patient':
-          Navigator.pushReplacementNamed(context, Routes.patientNav);
-          break;
-        case 'pharmacy':
-          Navigator.pushReplacementNamed(context, Routes.pharmacyDashboard);
-          break;
-      }
-    } else {
-      // Show invalid login dialog
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Login Failed'),
-          content: const Text('Invalid email or password.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            )
-          ],
-        ),
-      );
+    // Navigate based on role
+    if (role == 'Patient') {
+      Navigator.pushReplacementNamed(context, Routes.patientNav);
+    } else if (role == 'Pharmacy') {
+      Navigator.pushReplacementNamed(context, Routes.pharmacyDashboard);
+    // } else if (role == 'Admin') {
+    //   Navigator.pushReplacementNamed(context, Routes.adminDashboard);
     }
+  } catch (e) {
+    // Show error dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Login Failed'),
+        content: Text(e.toString()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          )
+        ],
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

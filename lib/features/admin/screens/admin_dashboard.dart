@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});
@@ -43,7 +44,8 @@ class AdminDashboard extends StatelessWidget {
                           Icons.logout,
                           color: Colors.black, // logout in grey
                         ),
-                        onPressed: () {
+                        onPressed: () async {
+                          await AuthController().logout();
                           Navigator.pushNamedAndRemoveUntil(
                             context,
                             Routes.home,

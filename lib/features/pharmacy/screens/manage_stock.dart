@@ -4,6 +4,9 @@ import '../../../app/routes.dart';
 //import '../controllers/pharmacy_controller.dart';
 import '../models/pharmacy.dart';
 import '../models/medicine.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class ManageStockScreen extends StatefulWidget {
   final Pharmacy pharmacy; // Pharmacy whose stock we are managing
@@ -15,68 +18,148 @@ class ManageStockScreen extends StatefulWidget {
 }
 
 class _ManageStockScreenState extends State<ManageStockScreen> {
-  // Increase stock quantity
-  void _increaseQuantity(int index) {
+    @override
+  void initState() {
+    super.initState();
+    loadMedicines(); // 🔹 load medicines when screen starts
+  } 
+
+    // 🔹 Load medicines from Firestore
+Future<void> loadMedicines() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('medicines')
+      .get();
+
+  final meds = snapshot.docs.map((doc) => Medicine.fromDoc(doc)).toList();
+
+  setState(() {
+    widget.pharmacy.medicines = meds;
+  });
+}
+
+Future<void> _increaseQuantity(int index) async {
+  final med = widget.pharmacy.medicines[index];
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final docRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('medicines')
+      .doc(med.id);
+
+  try {
+    await docRef.update({'quantity': med.quantity + 1});
+
+    if (!mounted) return;
     setState(() {
       widget.pharmacy.medicines[index].quantity += 1;
     });
-  }
-
-  // Decrease stock quantity
-  void _decreaseQuantity(int index) {
-    setState(() {
-      final currentQty = widget.pharmacy.medicines[index].quantity;
-      if (currentQty > 0) {
-        widget.pharmacy.medicines[index].quantity -= 1;
-      }
-    });
-  }
-
-  // Delete medicine
-  void _deleteMedicine(int index) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Medicine'),
-        content: Text(
-          'Are you sure you want to delete "${widget.pharmacy.medicines[index].name}"?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                widget.pharmacy.medicines.removeAt(index);
-              });
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to increase quantity: $e'),
+        backgroundColor: Colors.red,
       ),
     );
   }
+}
+
+Future<void> _decreaseQuantity(int index) async {
+  final med = widget.pharmacy.medicines[index];
+  if (med.quantity == 0) return;
+
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final docRef = FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('medicines')
+      .doc(med.id);
+
+  try {
+    await docRef.update({'quantity': med.quantity - 1});
+
+    if (!mounted) return;
+    setState(() {
+      widget.pharmacy.medicines[index].quantity -= 1;
+    });
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to decrease quantity: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+
+// Delete medicine
+Future<void> _deleteMedicine(int index) async {
+  final med = widget.pharmacy.medicines[index];
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  await FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('medicines')
+      .doc(med.id)
+      .delete();
+
+  setState(() {
+    widget.pharmacy.medicines.removeAt(index);
+  });
+}
+
 
   // Edit medicine
-  Future<void> _editMedicine(int index) async {
-    final Medicine med = widget.pharmacy.medicines[index];
+Future<void> _editMedicine(int index) async {
+  final med = widget.pharmacy.medicines[index];
 
-    final result = await Navigator.pushNamed(
-      context,
-      Routes.editMedicine,
-      arguments: med, // pass Medicine object
-    );
+  final result = await Navigator.pushNamed(
+    context,
+    Routes.editMedicine,
+    arguments: {
+      'name': med.name,
+      'price': med.price,
+      'quantity': med.quantity,
+    },
+  );
 
-    if (result != null && result is Medicine) {
-      setState(() {
-        widget.pharmacy.medicines[index] = result; // update medicine
-      });
-    }
+  if (result != null && result is Map<String, dynamic>) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('medicines')
+        .doc(med.id);
+
+    await docRef.update({
+      'name': result['name'],
+      'price': result['price'],
+      'quantity': result['quantity'],
+    });
+
+    setState(() {
+      widget.pharmacy.medicines[index].name = result['name'];
+      widget.pharmacy.medicines[index].price = result['price'];
+      widget.pharmacy.medicines[index].quantity = result['quantity'];
+    });
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

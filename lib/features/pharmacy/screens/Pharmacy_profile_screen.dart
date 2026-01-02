@@ -1,38 +1,62 @@
-// ignore_for_file: file_names
-
 import 'package:flutter/material.dart';
-import '../../../app/routes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/colors.dart';
-import '../models/pharmacy.dart';
+import '../../../app/routes.dart';
 
 class PharmacyProfileScreen extends StatefulWidget {
-  final Pharmacy pharmacy;
-
-  const PharmacyProfileScreen({super.key, required this.pharmacy});
+  const PharmacyProfileScreen({super.key});
 
   @override
   State<PharmacyProfileScreen> createState() => _PharmacyProfileScreenState();
 }
 
 class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
-  late Pharmacy pharmacy;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  String name = '';
+  String email = '';
+  String phone = '';
+  String address = '';
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    pharmacy = widget.pharmacy;
+    loadPharmacyData();
+  }
+
+  Future<void> loadPharmacyData() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          name = doc['fullName'] ?? '';
+          email = doc['email'] ?? '';
+          phone = doc['phone'] ?? '';
+          address = doc['address'] ?? '';
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> refreshPharmacyData() async {
+    setState(() => isLoading = true);
+    await loadPharmacyData();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Pharmacy Profile',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: AppColors.primary,
-      ),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -48,21 +72,17 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              'Name: ${pharmacy.name}',
-              style: const TextStyle(fontSize: 18),
-            ),
+
+            Text('Name: $name', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
-            Text(
-              'Address: ${pharmacy.address}',
-              style: const TextStyle(fontSize: 18),
-            ),
+            Text('Email: $email', style: const TextStyle(fontSize: 18)),
             const SizedBox(height: 10),
-            Text(
-              'Phone: ${pharmacy.phone}',
-              style: const TextStyle(fontSize: 18),
-            ),
+            Text('Phone: $phone', style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
+            Text('Address: $address', style: const TextStyle(fontSize: 18)),
+
             const SizedBox(height: 30),
+
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -72,18 +92,22 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                     context,
                     Routes.editPharmacyProfile,
                     arguments: {
-                      'name': pharmacy.name,
-                      'address': pharmacy.address,
-                      'phone': pharmacy.phone,
+                      'name': name,
+                      'phone': phone,
+                      'address': address,
                     },
                   );
 
                   if (result != null && result is Map<String, String>) {
-                    setState(() {
-                      pharmacy.name = result['name']!;
-                      pharmacy.address = result['address']!;
-                      pharmacy.phone = result['phone']!;
-                    });
+                    final user = _auth.currentUser;
+                    if (user != null) {
+                      await _firestore.collection('users').doc(user.uid).update({
+                        'fullName': result['name'],
+                        'phone': result['phone'],
+                        'address': result['address'],
+                      });
+                    }
+                    await refreshPharmacyData();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -104,5 +128,3 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
     );
   }
 }
-
-// (removed duplicate ignore and self-export left over from rename attempts)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
+//import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/constants/colors.dart';
 import '../../../core/widgets/custom_button.dart';
@@ -23,7 +24,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   // ================= State =================
   String selectedRole = 'Patient'; // ✅ MUST match dropdown value
-  PlatformFile? uploadedDocument;
+  //PlatformFile? uploadedDocument;
 
   final AuthController authController = AuthController();
 
@@ -39,51 +40,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // ================= Pick PDF =================
-  Future<void> pickDocument() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'], // ✅ PDF only
-    );
+  // Future<void> pickDocument() async {
+  //   final result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['pdf'], // ✅ PDF only
+  //   );
 
-    if (result != null && result.files.isNotEmpty) {
-      setState(() {
-        uploadedDocument = result.files.first;
-      });
-    }
-  }
+  //   if (result != null && result.files.isNotEmpty) {
+  //     setState(() {
+  //       uploadedDocument = result.files.first;
+  //     });
+  //   }
+  // }
 
-  // ================= Register =================
-  void register() async {
-    if (selectedRole == 'Pharmacy' && uploadedDocument == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please upload your legal document (PDF).'),
-        ),
-      );
-      return;
-    }
-    // Capture messenger before the async call to avoid using context across
-    // an async gap. Also check `mounted` before using context after await.
-    final messenger = ScaffoldMessenger.of(context);
+// ================= Register =================
+void register() async {
+  // if (selectedRole == 'Pharmacy' && uploadedDocument == null) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Please upload your legal document (PDF).')),
+  //   );
+  //   return;
+  // }
 
-    await authController.register(
-      fullName: fullNameController.text,
-      email: emailController.text,
-      password: passwordController.text,
-      phone: phoneController.text,
-      address: addressController.text,
-      role: selectedRole,
-      documentPath: uploadedDocument?.path,
-    );
+  final messenger = ScaffoldMessenger.of(context);
 
-    if (!mounted) return;
+try {
+  await authController.register(
+    fullName: fullNameController.text.trim(),
+    email: emailController.text.trim(),
+    password: passwordController.text.trim(),
+    phone: phoneController.text.trim(),
+    address: addressController.text.trim(),
+    role: selectedRole,
+    //documentPath: uploadedDocument?.path,
+  );
 
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Registration successful!')),
-    );
+  if (!mounted) return;
 
-    Navigator.pop(context); // 🔙 Back to login
-  }
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Registration successful!')),
+  );
+
+  Navigator.pop(context); // back to login
+} on FirebaseAuthException catch (e) {
+  // Show a friendly error
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(e.message ?? 'Registration failed')),
+  );
+} catch (e) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Error: ${e.toString()}')),
+  );
+}}
 
   // ================= UI =================
   @override
@@ -141,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onChanged: (value) {
                     setState(() {
                       selectedRole = value!;
-                      uploadedDocument = null; // reset doc when role changes
+                      //uploadedDocument = null; // reset doc when role changes
                     });
                   },
                 ),
@@ -152,22 +160,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
             // ================= Pharmacy Document =================
             if (selectedRole == 'Pharmacy')
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: pickDocument,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload Legal Document (PDF)'),
-                  ),
-                  const SizedBox(height: 8),
-                  if (uploadedDocument != null)
-                    Text(
-                      'Selected: ${uploadedDocument!.name}',
-                      style: const TextStyle(color: AppColors.primary),
-                    ),
-                ],
-              ),
+              // Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     ElevatedButton.icon(
+              //       onPressed: pickDocument,
+              //       icon: const Icon(Icons.upload_file),
+              //       label: const Text('Upload Legal Document (PDF)'),
+              //     ),
+              //     const SizedBox(height: 8),
+              //     if (uploadedDocument != null)
+              //       Text(
+              //         'Selected: ${uploadedDocument!.name}',
+              //         style: const TextStyle(color: AppColors.primary),
+              //       ),
+              //   ],
+              // ),
 
             const SizedBox(height: 30),
 

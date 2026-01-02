@@ -1,45 +1,80 @@
-// Remove unused Flutter import
-// import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthController {
-  // Simulate registration
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  /// ================= REGISTER =================
   Future<void> register({
     required String fullName,
     required String email,
     required String password,
     required String phone,
     required String address,
-    required String role,
-    String? documentPath,
+    required String role, // Patient | Pharmacy
   }) async {
-    // Pharmacy must upload document
-    if (role == 'Pharmacy' && documentPath == null) {
-      // Use proper logging instead of print
-      _log("Error: Pharmacy must upload a document.");
-      return;
+    try {
+      // 1️⃣ Create Auth user
+      UserCredential credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = credential.user!.uid;
+
+      // 2️⃣ Save Firestore user profile
+      await _firestore.collection('users').doc(uid).set({
+        'uid': uid,
+        'fullName': fullName,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        'role': role,
+        'isApproved': true, // ✅ pharmacies are automatically approved
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      debugPrint('Registration successful');
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message ?? 'Registration failed');
     }
-
-    // Simulated registration (mock). Replace this block with
-    // an actual backend API call when integrating authentication.
-    _log("Registering user (simulated):");
-    _log("Name: $fullName");
-    _log("Email: $email");
-    _log("Role: $role");
-    if (role == 'Pharmacy') {
-      _log("Document path: $documentPath");
-    }
-
-    // Simulate delay
-    await Future.delayed(const Duration(seconds: 1));
-
-    _log("Registration successful!");
   }
 
-  // Logging helper
-  void _log(String message) {
-    // Replace with logging framework if needed
-    // For now, using debugPrint for Flutter-friendly logging
-    debugPrint(message);
+  /// ================= LOGIN =================
+  Future<String> login({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = credential.user!.uid;
+
+      final doc = await _firestore.collection('users').doc(uid).get();
+
+      if (!doc.exists) {
+        throw Exception('User profile not found');
+      }
+
+      final role = doc['role'];
+      // Removed the isApproved check completely
+
+      return role;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message ?? 'Login failed');
+    }
   }
+
+  /// ================= LOGOUT =================
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
+
+  /// ================= CURRENT USER =================
+  User? get currentUser => _auth.currentUser;
 }

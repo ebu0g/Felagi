@@ -92,17 +92,9 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     // ================= PHARMACY PROFILE =================
     case Routes.pharmacyProfile:
-      final args = settings.arguments;
-
-      if (args != null && args is Pharmacy) {
-        return MaterialPageRoute(
-          builder: (_) => PharmacyProfileScreen(pharmacy: args),
-        );
-      }
-
+      // No arguments needed anymore
       return MaterialPageRoute(
-        builder: (_) =>
-            const Scaffold(body: Center(child: Text('No pharmacy selected'))),
+        builder: (_) => const PharmacyProfileScreen(),
       );
 
     // ================= EDIT PHARMACY =================
