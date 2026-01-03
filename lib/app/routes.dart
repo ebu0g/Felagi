@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../features/auth/screens/home_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/patient/screens/patient_home.dart';
 import '../features/pharmacy/screens/pharmacy_dashboard.dart';
 import '../features/pharmacy/screens/add_medicine.dart';
@@ -16,6 +17,7 @@ import '../features/patient/screens/search_results.dart';
 import '../features/patient/screens/pharmacy_details.dart';
 import '../features/patient/screens/patient_profile.dart';
 import '../features/patient/screens/patient_navigation.dart';
+import '../features/pharmacy/screens/pharmacy_navigation.dart';
 import '../features/patient/screens/order_history.dart';
 import '../features/patient/screens/order_details.dart';
 import '../features/admin/screens/admin_dashboard.dart';
@@ -42,6 +44,7 @@ class Routes {
   static const pharmacyDetails = '/pharmacy-details';
   static const patientProfile = '/patient-profile';
   static const patientNav = '/patient-nav';
+  static const pharmacyNav = '/pharmacy-nav';
   static const orderHistory = '/order-history';
   static const orderDetails = '/order-details';
   static const adminDashboard = '/admin-dashboard';
@@ -49,6 +52,7 @@ class Routes {
   static const manageAdmins = '/manage-admins';
   static const settings = '/settings';
   static const editPatientProfile = '/editPatientProfile';
+  static const forgotPassword = '/forgot-password';
 }
 
 // Static routes
@@ -56,12 +60,14 @@ final Map<String, WidgetBuilder> appRoutes = {
   Routes.home: (context) => const HomeScreen(),
   Routes.login: (context) => const LoginScreen(),
   Routes.register: (context) => const RegisterScreen(),
+  Routes.forgotPassword: (context) => const ForgotPasswordScreen(),
   Routes.patientHome: (context) => const PatientHome(),
   Routes.searchMedicine: (context) => const SearchMedicine(),
   Routes.searchResults: (context) => const SearchResults(),
   Routes.pharmacyDetails: (context) => const PharmacyDetails(),
   Routes.patientProfile: (context) => const PatientProfile(),
   Routes.patientNav: (context) => const PatientNavigation(),
+  Routes.pharmacyNav: (context) => const PharmacyNavigation(),
   Routes.orderHistory: (context) => const OrderHistoryScreen(),
   Routes.orderDetails: (context) => const OrderDetailsScreen(),
   Routes.pharmacyDashboard: (context) => const PharmacyDashboard(),
@@ -177,6 +183,12 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) =>
             const Scaffold(body: Center(child: Text('No pharmacy selected'))),
+      );
+
+    // ================= FORGOT PASSWORD =================
+    case Routes.forgotPassword:
+      return MaterialPageRoute(
+        builder: (_) => const ForgotPasswordScreen(),
       );
 
     // ================= FALLBACK =================

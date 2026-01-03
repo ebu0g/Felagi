@@ -14,7 +14,7 @@ service cloud.firestore {
     
     // Users collection - users can read/write their own profile
     match /users/{userId} {
-      allow read: if isOwner(userId);
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == userId;
       allow update: if isOwner(userId);
       allow delete: if isOwner(userId);

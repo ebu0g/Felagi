@@ -28,6 +28,7 @@ final AuthController authController = AuthController(); // add at the top of the
 void login() async {
   final email = emailController.text.trim();
   final password = passwordController.text;
+  final navigator = Navigator.of(context);
 
   try {
     final role = await authController.login(
@@ -36,15 +37,19 @@ void login() async {
     );
 
     // Navigate based on role
+    if (!mounted) return;
+    
     if (role == 'Patient') {
-      Navigator.pushReplacementNamed(context, Routes.patientNav);
+      navigator.pushReplacementNamed(Routes.patientNav);
     } else if (role == 'Pharmacy') {
-      Navigator.pushReplacementNamed(context, Routes.pharmacyDashboard);
+      navigator.pushReplacementNamed(Routes.pharmacyNav);
     // } else if (role == 'Admin') {
-    //   Navigator.pushReplacementNamed(context, Routes.adminDashboard);
+    //   navigator.pushReplacementNamed(Routes.adminDashboard);
     }
   } catch (e) {
     // Show error dialog
+    if (!mounted) return;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -93,7 +98,17 @@ void login() async {
               obscureText: true,
               controller: passwordController,
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, Routes.forgotPassword);
+                },
+                child: const Text('Forgot Password?'),
+              ),
+            ),
+            const SizedBox(height: 20),
 
             CustomButton(
               text: 'Login',

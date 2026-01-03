@@ -96,6 +96,36 @@ class AuthController {
     await _auth.signOut();
   }
 
+  /// ================= RESET PASSWORD =================
+  Future<void> resetPassword({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      debugPrint('Password reset email sent to: $email');
+    } on FirebaseAuthException catch (e) {
+      debugPrint('FirebaseAuthException: ${e.code} - ${e.message}');
+      
+      // Provide user-friendly error messages
+      String errorMessage;
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = 'This email address is not registered. Please check your email or create an account.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Please enter a valid email address.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This account has been disabled. Please contact support.';
+          break;
+        default:
+          errorMessage = e.message ?? 'Password reset failed: ${e.code}';
+      }
+      throw Exception(errorMessage);
+    } catch (e) {
+      debugPrint('Password reset error: $e');
+      throw Exception('Password reset failed: ${e.toString()}');
+    }
+  }
+
   /// ================= CURRENT USER =================
   User? get currentUser => _auth.currentUser;
 }
