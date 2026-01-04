@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
-import '../../pharmacy/controllers/pharmacy_controller.dart';
 
 class SearchMedicine extends StatefulWidget {
   const SearchMedicine({super.key});
@@ -58,18 +57,9 @@ class _SearchMedicineState extends State<SearchMedicine> {
       return;
     }
 
-    final controller = PharmacyController();
-    final allMedicines = controller.pharmacies
-        .expand((p) => p.medicines)
-        .toList();
-
-    setState(() {
-      suggestions = allMedicines
-          .map((m) => m.name)
-          .toSet() // remove duplicates
-          .where((name) => name.toLowerCase().startsWith(query.toLowerCase()))
-          .toList();
-    });
+    // Suggestions will be loaded from Firestore when searching
+    // For now, suggestions are empty - user can type and search directly
+    setState(() => suggestions = []);
   }
 
   @override
@@ -81,11 +71,12 @@ class _SearchMedicineState extends State<SearchMedicine> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // 🔍 Search Input
             TextField(
               controller: _controller,
@@ -153,11 +144,11 @@ class _SearchMedicineState extends State<SearchMedicine> {
               ),
             ),
 
-            // 🔹 Recent Searches
+            // 🔹 Search History
             if (recentSearches.isNotEmpty) ...[
               const SizedBox(height: 30),
               const Text(
-                'Recent searches',
+                'Search History',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),
@@ -187,7 +178,8 @@ class _SearchMedicineState extends State<SearchMedicine> {
                 },
               ),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );

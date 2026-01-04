@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 //import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
-import '../controllers/pharmacy_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 class PharmacyDashboard extends StatelessWidget {
@@ -115,20 +114,7 @@ class PharmacyDashboard extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         onPressed: () {
-          // If navigating to manage stock or profile, provide a Pharmacy argument
-          if (route == Routes.manageStock || route == Routes.pharmacyProfile) {
-            final controller = PharmacyController();
-            if (controller.pharmacies.isNotEmpty) {
-              Navigator.pushNamed(context, route, arguments: controller.pharmacies.first);
-              return;
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('No pharmacies available')),
-              );
-              return;
-            }
-          }
-
+          // Navigate to the route - no mock data needed
           Navigator.pushNamed(context, route);
         },
         style: ElevatedButton.styleFrom(

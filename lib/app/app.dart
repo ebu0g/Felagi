@@ -15,7 +15,7 @@ class FelagiApp extends StatelessWidget {
       routes: appRoutes,
       onGenerateRoute: onGenerateRoute,
       initialRoute: FirebaseAuth.instance.currentUser == null
-          ? Routes.login
+          ? Routes.home
           : Routes.patientNav,
     );
   }

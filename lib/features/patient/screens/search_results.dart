@@ -5,6 +5,7 @@ import '../../../core/constants/colors.dart';
 import '../../../app/routes.dart';
 import '../../pharmacy/models/medicine.dart';
 import '../../pharmacy/models/pharmacy.dart';
+import '../controllers/visited_pharmacies_controller.dart';
 
 class SearchResults extends StatelessWidget {
   const SearchResults({super.key});
@@ -16,6 +17,9 @@ class SearchResults extends StatelessWidget {
 
     // ✅ FIX: define search OUTSIDE StreamBuilder
     final String search = query.trim().toLowerCase();
+    
+    // Track the search query for history
+    final String medicineSearched = query.trim();
 
     return Scaffold(
       appBar: AppBar(
@@ -104,7 +108,15 @@ class SearchResults extends StatelessWidget {
                       ),
                       isThreeLine: true,
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () {
+                      onTap: () async {
+                        // Add to search history
+                        final historyController = VisitedPharmaciesController();
+                        await historyController.addSearchHistory(
+                          medicineSearched,
+                          medicine,
+                          pharmacy,
+                        );
+                        
                         Navigator.pushNamed(
                           context,
                           Routes.pharmacyDetails,

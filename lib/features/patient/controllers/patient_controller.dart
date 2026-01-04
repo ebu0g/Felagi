@@ -12,7 +12,7 @@ class PatientController {
   }
 
   List<Map<String, dynamic>> searchPharmacies(String medicine) {
-    // mock data for now
+    // Search is handled via Firestore in search_results.dart
     return [];
   }
 }

@@ -164,10 +164,6 @@ Future<void> _editMedicine(int index) async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Manage Stock - ${widget.pharmacy.name}', style: const TextStyle(color: Colors.white)),
-        backgroundColor: AppColors.primary,
-      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: widget.pharmacy.medicines.length,

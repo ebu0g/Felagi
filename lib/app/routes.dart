@@ -20,11 +20,6 @@ import '../features/patient/screens/patient_navigation.dart';
 import '../features/pharmacy/screens/pharmacy_navigation.dart';
 import '../features/patient/screens/order_history.dart';
 import '../features/patient/screens/order_details.dart';
-import '../features/admin/screens/admin_dashboard.dart';
-import '../features/admin/screens/approve_pharmacy.dart';
-import '../features/admin/screens/manage_admins.dart';
-import '../features/admin/screens/settings_screen.dart';
-import '../features/admin/controllers/admin_controller.dart';
 import '../features/pharmacy/models/pharmacy.dart'; // <-- Add this
 import '../features/patient/screens/edit_patient_profile.dart';
 
@@ -47,10 +42,6 @@ class Routes {
   static const pharmacyNav = '/pharmacy-nav';
   static const orderHistory = '/order-history';
   static const orderDetails = '/order-details';
-  static const adminDashboard = '/admin-dashboard';
-  static const approvePharmacy = '/approve-pharmacy';
-  static const manageAdmins = '/manage-admins';
-  static const settings = '/settings';
   static const editPatientProfile = '/editPatientProfile';
   static const forgotPassword = '/forgot-password';
 }
@@ -74,24 +65,6 @@ final Map<String, WidgetBuilder> appRoutes = {
   Routes.addMedicine: (context) => const AddMedicineScreen(),
   Routes.editPatientProfile: (context) => const EditPatientProfile(),
   //Routes.manageStock: (context) => const ManageStockScreen(),
-
-  // Admin Screens with Providers
-  Routes.adminDashboard: (context) => const AdminDashboard(),
-
-  Routes.approvePharmacy: (context) => ChangeNotifierProvider(
-    create: (_) => AdminController(),
-    builder: (context, child) => const ApprovePharmacyScreen(),
-  ),
-
-  Routes.manageAdmins: (context) => ChangeNotifierProvider(
-    create: (_) => AdminController(),
-    builder: (context, child) => const ManageAdminsScreen(),
-  ),
-
-  Routes.settings: (context) => ChangeNotifierProvider(
-    create: (_) => AdminController(),
-    builder: (context, child) => const SettingsScreen(), // remove const here
-  ),
 };
 
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -140,34 +113,6 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) =>
             EditMedicineScreen(name: name, price: price, quantity: quantity),
-      );
-
-    // ================= ADMIN =================
-    case Routes.adminDashboard:
-      return MaterialPageRoute(builder: (_) => const AdminDashboard());
-
-    case Routes.approvePharmacy:
-      return MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
-          create: (_) => AdminController(),
-          child: const ApprovePharmacyScreen(),
-        ),
-      );
-
-    case Routes.manageAdmins:
-      return MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
-          create: (_) => AdminController(),
-          child: const ManageAdminsScreen(),
-        ),
-      );
-
-    case Routes.settings:
-      return MaterialPageRoute(
-        builder: (_) => ChangeNotifierProvider(
-          create: (_) => AdminController(),
-          child: const SettingsScreen(),
-        ),
       );
 
     // ================= MANAGE STOCK =================

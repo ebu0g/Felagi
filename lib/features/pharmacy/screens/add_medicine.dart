@@ -40,7 +40,78 @@ Future<void> _submitForm() async {
   if (user == null) return;
 
   try {
-    // Add medicine to Firestore
+    // Check if medicine with same name already exists (case-insensitive)
+    final existingMedicines = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('medicines')
+        .where('name_lower', isEqualTo: name.toLowerCase())
+        .get();
+
+    if (existingMedicines.docs.isNotEmpty) {
+      // Medicine already exists - show dialog
+      final existingDoc = existingMedicines.docs.first;
+      final existingData = existingDoc.data();
+      final existingName = existingData['name'] ?? '';
+      final existingPrice = (existingData['price'] as num?)?.toDouble() ?? 0.0;
+      final existingQuantity = existingData['quantity'] ?? 0;
+
+      final shouldUpdate = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Medicine Already Exists'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('A medicine named "$existingName" already exists.'),
+              const SizedBox(height: 12),
+              Text('Current: ${existingPrice} ETB, Stock: $existingQuantity'),
+              const SizedBox(height: 12),
+              const Text('Would you like to update it with the new values?'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Update', style: TextStyle(color: Colors.orange)),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldUpdate == true) {
+        // Update existing medicine
+        await existingDoc.reference.update({
+          'name': name,
+          'name_lower': name.toLowerCase(),
+          'price': price,
+          'quantity': quantity,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Medicine updated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Clear fields
+        _nameController.clear();
+        _priceController.clear();
+        _quantityController.clear();
+      }
+      // If user cancels, do nothing
+      return;
+    }
+
+    // No duplicate found - add new medicine
     final docRef = await _firestore
         .collection('users')
         .doc(user.uid)
@@ -53,14 +124,7 @@ Future<void> _submitForm() async {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    // Create Medicine object with generated ID
-    final med = Medicine(
-      id: docRef.id,
-      name: name,
-      price: price,
-      quantity: quantity,
-    );
-
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Medicine added successfully'),
@@ -73,6 +137,7 @@ Future<void> _submitForm() async {
     _priceController.clear();
     _quantityController.clear();
   } catch (e) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Failed to add medicine: $e'),

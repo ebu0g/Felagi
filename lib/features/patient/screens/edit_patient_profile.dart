@@ -12,6 +12,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
   late TextEditingController _nameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _addressController;
 
   @override
   void didChangeDependencies() {
@@ -21,9 +22,10 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, String>;
 
-    _nameController = TextEditingController(text: args['name']);
-    _emailController = TextEditingController(text: args['email']);
-    _phoneController = TextEditingController(text: args['phone']);
+    _nameController = TextEditingController(text: args['name'] ?? '');
+    _emailController = TextEditingController(text: args['email'] ?? '');
+    _phoneController = TextEditingController(text: args['phone'] ?? '');
+    _addressController = TextEditingController(text: args['address'] ?? '');
   }
 
   @override
@@ -31,6 +33,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -44,10 +47,11 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
         ),
         backgroundColor: AppColors.primary,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
             _buildTextField(
               controller: _nameController,
               label: 'Name',
@@ -72,6 +76,15 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
               keyboardType: TextInputType.phone,
             ),
 
+            const SizedBox(height: 15),
+
+            _buildTextField(
+              controller: _addressController,
+              label: 'Address',
+              icon: Icons.location_on,
+              keyboardType: TextInputType.streetAddress,
+            ),
+
             const SizedBox(height: 30),
 
             // 💾 Save Button
@@ -84,6 +97,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                     'name': _nameController.text.trim(),
                     'email': _emailController.text.trim(),
                     'phone': _phoneController.text.trim(),
+                    'address': _addressController.text.trim(),
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -101,7 +115,8 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

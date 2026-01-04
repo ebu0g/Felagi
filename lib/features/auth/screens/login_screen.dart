@@ -16,14 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Mock user data
-  final List<Map<String, String>> mockUsers = [
-    {'email': 'admin@felagi.com', 'password': 'admin123', 'role': 'admin'},
-    {'email': 'patient@felagi.com', 'password': 'patient123', 'role': 'patient'},
-    {'email': 'pharmacy@felagi.com', 'password': 'pharmacy123', 'role': 'pharmacy'},
-  ];
-
-final AuthController authController = AuthController(); // add at the top of the class
+  final AuthController authController = AuthController();
 
 void login() async {
   final email = emailController.text.trim();
@@ -43,8 +36,6 @@ void login() async {
       navigator.pushReplacementNamed(Routes.patientNav);
     } else if (role == 'Pharmacy') {
       navigator.pushReplacementNamed(Routes.pharmacyNav);
-    // } else if (role == 'Admin') {
-    //   navigator.pushReplacementNamed(Routes.adminDashboard);
     }
   } catch (e) {
     // Show error dialog
