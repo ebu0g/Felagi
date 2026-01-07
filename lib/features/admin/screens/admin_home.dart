@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import '../../../core/constants/colors.dart';
+import '../../../app/routes.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/admin_controller.dart';
 
 class AdminHome extends StatefulWidget {
@@ -81,16 +84,24 @@ class _AdminHomeState extends State<AdminHome>
     final documentUrl = pharmacy['document'] ?? '';
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
-        title: Text(pharmacy['name'] ?? 'Unknown'),
+        contentPadding: const EdgeInsets.all(12),
+        title: Text(
+          pharmacy['name'] ?? 'Unknown',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text('Email: ${pharmacy['email'] ?? 'No email'}'),
-            Text('Phone: ${pharmacy['phone'] ?? 'No phone'}'),
-            Text('Location: ${pharmacy['location'] ?? 'Unknown'}'),
+            const SizedBox(height: 6),
+            Text('Email: ${pharmacy['email'] ?? 'No email'}',
+                style: const TextStyle(fontSize: 13)),
+            Text('Phone: ${pharmacy['phone'] ?? 'No phone'}',
+                style: const TextStyle(fontSize: 13)),
+            Text('Location: ${pharmacy['location'] ?? 'Unknown'}',
+                style: const TextStyle(fontSize: 13)),
           ],
         ),
         trailing: Row(
@@ -130,7 +141,10 @@ class _AdminHomeState extends State<AdminHome>
       BuildContext context, List<Map<String, dynamic>> pharmacies) {
     if (pharmacies.isEmpty) {
       return const Center(
-        child: Text('No pharmacies in this category'),
+        child: Text(
+          'No pharmacies in this category',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
       );
     }
 
@@ -145,23 +159,102 @@ class _AdminHomeState extends State<AdminHome>
     return Consumer<AdminController>(
       builder: (context, adminCtrl, _) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Admin - Pharmacies'),
-            bottom: TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Pending'),
-                Tab(text: 'Approved'),
-                Tab(text: 'Rejected'),
-              ],
-            ),
-          ),
-          body: TabBarView(
+          backgroundColor: Colors.grey[200],
+          body: Column(
+            children: [
+              // Gradient Header with Logout
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary, AppColors.accent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome!',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Manage pharmacies',
+                          style: TextStyle(fontSize: 18, color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.logout, color: Colors.black),
+                      onPressed: () async {
+                        final navigator = Navigator.of(context);
+                        await AuthController().logout();
+                        if (mounted) {
+                          navigator.pushNamedAndRemoveUntil(
+                            Routes.home,
+                            (route) => false,
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+Expanded(
+  child: Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TabBar(
+          controller: _tabController,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: AppColors.primary,
+          tabs: const [
+            Tab(text: 'Pending'),
+            Tab(text: 'Approved'),
+            Tab(text: 'Rejected'),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        Expanded(
+          child: TabBarView(
             controller: _tabController,
             children: [
               _buildTabContent(context, adminCtrl.pendingPharmacies),
               _buildTabContent(context, adminCtrl.approvedPharmacies),
               _buildTabContent(context, adminCtrl.rejectedPharmacies),
+            ],
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+
+
+              const SizedBox(height: 30),
             ],
           ),
         );
