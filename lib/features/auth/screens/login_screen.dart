@@ -36,6 +36,8 @@ void login() async {
       navigator.pushReplacementNamed(Routes.patientNav);
     } else if (role == 'Pharmacy') {
       navigator.pushReplacementNamed(Routes.pharmacyNav);
+    } else if (role == 'Admin') {
+      navigator.pushReplacementNamed(Routes.adminNav);
     }
   } catch (e) {
     // Show error dialog

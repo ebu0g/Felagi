@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+//import 'package:provider/provider.dart';
 
 import '../features/auth/screens/home_screen.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -22,6 +22,11 @@ import '../features/patient/screens/order_history.dart';
 import '../features/patient/screens/order_details.dart';
 import '../features/pharmacy/models/pharmacy.dart'; // <-- Add this
 import '../features/patient/screens/edit_patient_profile.dart';
+import '../features/admin/screens/admin_navigation.dart';
+import '../features/admin/screens/admin_dashboard.dart';
+import '../features/admin/screens/approve_pharmacy.dart';
+import '../features/admin/screens/manage_admins.dart';
+import '../features/admin/screens/settings_screen.dart';
 
 class Routes {
   static const home = '/';
@@ -44,6 +49,11 @@ class Routes {
   static const orderDetails = '/order-details';
   static const editPatientProfile = '/editPatientProfile';
   static const forgotPassword = '/forgot-password';
+  static const adminNav = '/admin-nav';
+  static const adminDashboard = '/admin-dashboard';
+  static const approvePharmacy = '/approve-pharmacy';
+  static const manageAdmins = '/manage-admins';
+  static const settings = '/settings';
 }
 
 // Static routes
@@ -64,6 +74,11 @@ final Map<String, WidgetBuilder> appRoutes = {
   Routes.pharmacyDashboard: (context) => const PharmacyDashboard(),
   Routes.addMedicine: (context) => const AddMedicineScreen(),
   Routes.editPatientProfile: (context) => const EditPatientProfile(),
+  Routes.adminNav: (context) => const AdminNavigation(),
+  Routes.adminDashboard: (context) => const AdminDashboard(),
+  Routes.approvePharmacy: (context) => const ApprovePharmacyScreen(),
+  Routes.manageAdmins: (context) => const ManageAdminsScreen(),
+  Routes.settings: (context) => const SettingsScreen(),
   //Routes.manageStock: (context) => const ManageStockScreen(),
 };
 
@@ -80,11 +95,13 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case Routes.editPharmacyProfile:
       final args = settings.arguments;
       String name = '';
+      String email = '';
       String address = '';
       String phone = '';
 
       if (args != null && args is Map<String, dynamic>) {
         name = args['name'] ?? '';
+        email = args['email'] ?? '';
         address = args['address'] ?? '';
         phone = args['phone'] ?? '';
       }
@@ -92,6 +109,7 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return MaterialPageRoute(
         builder: (_) => EditPharmacyProfileScreen(
           name: name,
+          email: email,
           address: address,
           phone: phone,
         ),

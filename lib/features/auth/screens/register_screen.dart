@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-//import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/constants/colors.dart';
@@ -21,10 +20,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
+  final TextEditingController documentLinkController = TextEditingController();
 
   // ================= State =================
   String selectedRole = 'Patient'; // ✅ MUST match dropdown value
-  //PlatformFile? uploadedDocument;
 
   final AuthController authController = AuthController();
 
@@ -36,62 +35,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
     passwordController.dispose();
     phoneController.dispose();
     addressController.dispose();
+    documentLinkController.dispose();
     super.dispose();
   }
 
-  // ================= Pick PDF =================
-  // Future<void> pickDocument() async {
-  //   final result = await FilePicker.platform.pickFiles(
-  //     type: FileType.custom,
-  //     allowedExtensions: ['pdf'], // ✅ PDF only
-  //   );
-
-  //   if (result != null && result.files.isNotEmpty) {
-  //     setState(() {
-  //       uploadedDocument = result.files.first;
-  //     });
-  //   }
-  // }
-
 // ================= Register =================
-void register() async {
-  // if (selectedRole == 'Pharmacy' && uploadedDocument == null) {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     const SnackBar(content: Text('Please upload your legal document (PDF).')),
-  //   );
-  //   return;
-  // }
+  void register() async {
+    if (selectedRole == 'Pharmacy' &&
+        documentLinkController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please provide your Google Drive document link.')),
+      );
+      return;
+    }
 
-  final messenger = ScaffoldMessenger.of(context);
+    if (selectedRole == 'Pharmacy' &&
+        !documentLinkController.text.contains('drive.google.com')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Please provide a valid Google Drive link.')),
+      );
+      return;
+    }
 
-try {
-  await authController.register(
-    fullName: fullNameController.text.trim(),
-    email: emailController.text.trim(),
-    password: passwordController.text.trim(),
-    phone: phoneController.text.trim(),
-    address: addressController.text.trim(),
-    role: selectedRole,
-    //documentPath: uploadedDocument?.path,
-  );
+    //final messenger = ScaffoldMessenger.of(context);
 
-  if (!mounted) return;
+    try {
+      await authController.register(
+        fullName: fullNameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        phone: phoneController.text.trim(),
+        address: addressController.text.trim(),
+        role: selectedRole,
+        documentLink: selectedRole == 'Pharmacy'
+            ? documentLinkController.text.trim()
+            : null,
+      );
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Registration successful!')),
-  );
+      if (!mounted) return;
 
-  Navigator.pop(context); // back to login
-} on FirebaseAuthException catch (e) {
-  // Show a friendly error
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(e.message ?? 'Registration failed')),
-  );
-} catch (e) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Error: ${e.toString()}')),
-  );
-}}
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful!')),
+      );
+
+      Navigator.pop(context); // back to login
+    } on FirebaseAuthException catch (e) {
+      // Show a friendly error
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Registration failed'),
+          duration: const Duration(seconds: 5),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          duration: const Duration(seconds: 5),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   // ================= UI =================
   @override
@@ -145,11 +155,16 @@ try {
                       value: 'Pharmacy',
                       child: Text('Pharmacy'),
                     ),
+                    DropdownMenuItem(
+                      value: 'Admin',
+                      child: Text('Admin'),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
                       selectedRole = value!;
-                      //uploadedDocument = null; // reset doc when role changes
+                      documentLinkController
+                          .clear(); // reset doc link when role changes
                     });
                   },
                 ),
@@ -158,24 +173,36 @@ try {
 
             const SizedBox(height: 20),
 
-            // ================= Pharmacy Document =================
+            // ================= Pharmacy Document Link =================
             if (selectedRole == 'Pharmacy')
-              // Column(
-              //   crossAxisAlignment: CrossAxisAlignment.start,
-              //   children: [
-              //     ElevatedButton.icon(
-              //       onPressed: pickDocument,
-              //       icon: const Icon(Icons.upload_file),
-              //       label: const Text('Upload Legal Document (PDF)'),
-              //     ),
-              //     const SizedBox(height: 8),
-              //     if (uploadedDocument != null)
-              //       Text(
-              //         'Selected: ${uploadedDocument!.name}',
-              //         style: const TextStyle(color: AppColors.primary),
-              //       ),
-              //   ],
-              // ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Google Drive Document Link',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  CustomTextField(
+                    hintText:
+                        'Paste your Google Drive link here (e.g., https://drive.google.com/...)',
+                    controller: documentLinkController,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '📌 Make sure the link is shareable (anyone with the link can view)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 30),
 

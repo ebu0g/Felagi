@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/constants/colors.dart';
-import '../models/medicine.dart';
+//import '../models/medicine.dart';
 
 class AddMedicineScreen extends StatefulWidget {
   const AddMedicineScreen({super.key});
@@ -112,17 +112,17 @@ Future<void> _submitForm() async {
     }
 
     // No duplicate found - add new medicine
-    final docRef = await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .collection('medicines')
-        .add({
-      'name': name,
-      'name_lower': name.toLowerCase(), // 🔑 for case-insensitive search
-      'price': price,
-      'quantity': quantity,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+    // final docRef = await _firestore
+    //     .collection('users')
+    //     .doc(user.uid)
+    //     .collection('medicines')
+    //     .add({
+    //   'name': name,
+    //   'name_lower': name.toLowerCase(), // 🔑 for case-insensitive search
+    //   'price': price,
+    //   'quantity': quantity,
+    //   'createdAt': FieldValue.serverTimestamp(),
+    // });
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

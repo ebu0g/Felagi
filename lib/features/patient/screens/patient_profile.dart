@@ -43,10 +43,6 @@ class _PatientProfileState extends State<PatientProfile> {
     }
   }
 
-  Future<void> refreshUserData() async {
-    setState(() => isLoading = true);
-    await loadUserData();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +186,7 @@ class _PatientProfileState extends State<PatientProfile> {
                                 'address': result['address'],
                               });
                             }
-                            await refreshUserData();
+                            await loadUserData();
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -203,29 +199,6 @@ class _PatientProfileState extends State<PatientProfile> {
                     ),
 
                     const SizedBox(height: 16),
-
-                    // 🔄 Refresh Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.refresh),
-                        label: const Text(
-                          'Refresh',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onPressed: refreshUserData,
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primary),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),

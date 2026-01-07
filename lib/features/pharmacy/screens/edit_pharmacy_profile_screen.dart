@@ -3,12 +3,14 @@ import '../../../core/constants/colors.dart';
 
 class EditPharmacyProfileScreen extends StatefulWidget {
   final String name;
+  final String email;
   final String address;
   final String phone;
 
   const EditPharmacyProfileScreen({
     super.key,
     required this.name,
+    required this.email,
     required this.address,
     required this.phone,
   });
@@ -20,6 +22,7 @@ class EditPharmacyProfileScreen extends StatefulWidget {
 class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _emailController;
   late TextEditingController _addressController;
   late TextEditingController _phoneController;
 
@@ -27,6 +30,7 @@ class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
+    _emailController = TextEditingController(text: widget.email);
     _addressController = TextEditingController(text: widget.address);
     _phoneController = TextEditingController(text: widget.phone);
   }
@@ -34,6 +38,7 @@ class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _emailController.dispose();
     _addressController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -43,6 +48,7 @@ class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
     if (_formKey.currentState!.validate()) {
       Navigator.pop(context, {
         'name': _nameController.text,
+        'email': _emailController.text,
         'address': _addressController.text,
         'phone': _phoneController.text,
       });
@@ -67,15 +73,29 @@ class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pharmacy Name',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.store),
                 ),
                 validator: (value) => value == null || value.isEmpty ? 'Name required' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (value) => value == null || value.isEmpty ? 'Email required' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _addressController,
+                keyboardType: TextInputType.streetAddress,
                 decoration: const InputDecoration(
                   labelText: 'Address',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
                 ),
                 validator: (value) => value == null || value.isEmpty ? 'Address required' : null,
               ),
@@ -86,6 +106,7 @@ class _EditPharmacyProfileScreenState extends State<EditPharmacyProfileScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Phone',
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
                 ),
                 validator: (value) => value == null || value.isEmpty ? 'Phone required' : null,
               ),

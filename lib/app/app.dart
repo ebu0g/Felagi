@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'routes.dart';
-import '../features/auth/screens/login_screen.dart';
-import '../features/patient/screens/patient_navigation.dart';
+// import '../features/auth/screens/login_screen.dart';
+// import '../features/patient/screens/patient_navigation.dart';
 
 class FelagiApp extends StatelessWidget {
   const FelagiApp({super.key});

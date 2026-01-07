@@ -71,6 +71,14 @@ class _SearchMedicineState extends State<SearchMedicine> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+            appBar: AppBar(
+        title: const Text(
+          'Search Medicine',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: AppColors.primary,
+        leading: SizedBox.shrink(),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

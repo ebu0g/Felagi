@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../../app/routes.dart';
 import '../../../core/constants/colors.dart';
 
-class PharmacyProfileScreen extends StatefulWidget {
-  const PharmacyProfileScreen({super.key});
+class AdminProfile extends StatefulWidget {
+  const AdminProfile({super.key});
 
   @override
-  State<PharmacyProfileScreen> createState() => _PharmacyProfileScreenState();
+  State<AdminProfile> createState() => _AdminProfileState();
 }
 
-class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
+class _AdminProfileState extends State<AdminProfile> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -25,10 +24,10 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
   @override
   void initState() {
     super.initState();
-    loadPharmacyData();
+    loadAdminData();
   }
 
-  Future<void> loadPharmacyData() async {
+  Future<void> loadAdminData() async {
     final user = _auth.currentUser;
     if (user != null) {
       final doc = await _firestore.collection('users').doc(user.uid).get();
@@ -59,7 +58,7 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // 🎨 Profile Header (Same as Patient)
+              // 🎨 Profile Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(30),
@@ -72,19 +71,19 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                 ),
                 child: Column(
                   children: [
-                    // 💊 Pharmacy Avatar
+                    // 👤 Admin Avatar
                     const CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.white,
                       child: Icon(
-                        Icons.local_pharmacy,
+                        Icons.admin_panel_settings,
                         size: 50,
                         color: AppColors.primary,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      name.isEmpty ? 'Pharmacy' : name,
+                      name.isEmpty ? 'Admin' : name,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -103,11 +102,12 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                 ),
               ),
 
-              // 📋 Profile Info Card
+              // 📋 Profile Information Cards
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
+                    // 📝 Admin Information Card
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -121,12 +121,12 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                             Row(
                               children: const [
                                 Icon(
-                                  Icons.local_pharmacy_outlined,
+                                  Icons.admin_panel_settings_outlined,
                                   color: AppColors.primary,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
-                                  'Pharmacy Information',
+                                  'Admin Information',
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -135,7 +135,7 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            _buildInfoRow(Icons.store, 'Pharmacy Name', name),
+                            _buildInfoRow(Icons.person, 'Name', name),
                             const SizedBox(height: 12),
                             _buildInfoRow(Icons.email, 'Email', email),
                             const SizedBox(height: 12),
@@ -172,28 +172,12 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                           ),
                         ),
                         onPressed: () async {
-                          final result = await Navigator.pushNamed(
+                          await Navigator.pushNamed(
                             context,
-                            Routes.editPharmacyProfile,
-                            arguments: {
-                              'name': name,
-                              'email': email,
-                              'phone': phone,
-                              'address': address,
-                            },
+                            Routes.settings,
                           );
-
-                          if (result != null && result is Map<String, String>) {
-                            final user = _auth.currentUser;
-                            if (user != null) {
-                              await _firestore.collection('users').doc(user.uid).update({
-                                'fullName': result['name'],
-                                'email': result['email'],
-                                'phone': result['phone'],
-                                'address': result['address'],
-                              });
-                            }
-                            await loadPharmacyData();
+                          if (mounted) {
+                            await loadAdminData();
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -206,7 +190,6 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                     ),
 
                     const SizedBox(height: 16),
-
                   ],
                 ),
               ),
@@ -250,3 +233,4 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
     );
   }
 }
+
