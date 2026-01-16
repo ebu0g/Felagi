@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../pharmacy/models/pharmacy.dart';
 import '../../pharmacy/models/medicine.dart';
 
@@ -53,13 +54,29 @@ class SearchHistoryItem {
 }
 
 class VisitedPharmaciesController {
-  static const String _key = 'search_history';
+  static const String _baseKey = 'search_history';
+  static const String _lastUidKey = 'search_history_last_uid';
+
+  String _scopedKey() {
+    final uid = Uri.encodeComponent(
+        (FirebaseAuth.instance.currentUser?.uid ?? '').toString());
+    if (uid.isEmpty) {
+      return _baseKey;
+    }
+    return '$_baseKey\_$uid';
+  }
+
+  Future<String?> _lastKnownUid(SharedPreferences prefs) async {
+    return prefs.getString(_lastUidKey);
+  }
 
   // Add a search history item (medicine + pharmacy)
-  Future<void> addSearchHistory(String medicineName, Medicine medicine, Pharmacy pharmacy) async {
+  Future<void> addSearchHistory(
+      String medicineName, Medicine medicine, Pharmacy pharmacy) async {
     final prefs = await SharedPreferences.getInstance();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
     final historyList = await getSearchHistory();
-    
+
     // Create new history item
     final newItem = SearchHistoryItem(
       medicineName: medicineName,
@@ -69,29 +86,56 @@ class VisitedPharmaciesController {
       pharmacy: pharmacy,
       timestamp: DateTime.now().toIso8601String(),
     );
-    
+
     // Add to the beginning
     historyList.insert(0, newItem);
-    
+
     // Keep only last 100 searches
     if (historyList.length > 100) {
       historyList.removeRange(100, historyList.length);
     }
-    
-    // Save to SharedPreferences
+
+    // Save to SharedPreferences (scoped per-user)
     final jsonList = historyList.map((item) => item.toJson()).toList();
-    await prefs.setString(_key, jsonEncode(jsonList));
+    await prefs.setString(_scopedKey(), jsonEncode(jsonList));
+
+    // Remember the uid we just wrote for retrieval on next app launch
+    if (uid != null && uid.isNotEmpty) {
+      await prefs.setString(_lastUidKey, uid);
+    }
   }
 
   // Get all search history
   Future<List<SearchHistoryItem>> getSearchHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_key);
-    
+    final key = _scopedKey();
+    String? jsonString = prefs.getString(key);
+
+    // If no data for current uid, try last known uid (helps after app restart before auth sync)
+    if ((jsonString == null || jsonString.isEmpty) && key != _baseKey) {
+      final lastUid = await _lastKnownUid(prefs);
+      if (lastUid != null && lastUid.isNotEmpty) {
+        final legacyKey = '${_baseKey}_${Uri.encodeComponent(lastUid)}';
+        jsonString = prefs.getString(legacyKey);
+        if (jsonString != null && jsonString.isNotEmpty) {
+          // Migrate to current key for faster future reads
+          await prefs.setString(key, jsonString);
+        }
+      }
+    }
+
+    // Fallback to base key for legacy storage
+    if ((jsonString == null || jsonString.isEmpty) && key != _baseKey) {
+      jsonString = prefs.getString(_baseKey);
+      if (jsonString != null && jsonString.isNotEmpty) {
+        await prefs.setString(key, jsonString);
+      }
+    }
+
     if (jsonString == null || jsonString.isEmpty) {
       return [];
     }
-    
+
     try {
       final List<dynamic> jsonList = jsonDecode(jsonString);
       return jsonList.map((json) => SearchHistoryItem.fromJson(json)).toList();
@@ -103,19 +147,19 @@ class VisitedPharmaciesController {
   // Clear all search history
   Future<void> clearSearchHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    await prefs.remove(_scopedKey());
   }
 
   // Remove a specific search history item
   Future<void> removeSearchHistory(int index) async {
     final prefs = await SharedPreferences.getInstance();
     final historyList = await getSearchHistory();
-    
+
     if (index >= 0 && index < historyList.length) {
       historyList.removeAt(index);
-      
+
       final jsonList = historyList.map((item) => item.toJson()).toList();
-      await prefs.setString(_key, jsonEncode(jsonList));
+      await prefs.setString(_scopedKey(), jsonEncode(jsonList));
     }
   }
 
@@ -143,10 +187,9 @@ class VisitedPharmaciesController {
   Future<void> removeVisitedPharmacy(String pharmacyId) async {
     final history = await getSearchHistory();
     history.removeWhere((item) => item.pharmacy.id == pharmacyId);
-    
+
     final prefs = await SharedPreferences.getInstance();
     final jsonList = history.map((item) => item.toJson()).toList();
-    await prefs.setString(_key, jsonEncode(jsonList));
+    await prefs.setString(_scopedKey(), jsonEncode(jsonList));
   }
 }
-

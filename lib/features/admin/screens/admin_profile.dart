@@ -31,18 +31,66 @@ class _AdminProfileState extends State<AdminProfile> {
     final user = _auth.currentUser;
     if (user != null) {
       final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() {
-          name = doc['fullName'] ?? '';
-          email = doc['email'] ?? '';
-          phone = doc['phone'] ?? '';
-          address = doc['address'] ?? '';
-          isLoading = false;
-        });
-      }
+      if (!doc.exists) return;
+
+      final data = doc.data() ?? {};
+      final fetchedName =
+          (data['fullName'] ?? data['full_name'] ?? data['name'] ?? '')
+              .toString()
+              .trim();
+      final fetchedEmail = (data['email'] ?? '').toString().trim();
+      final fetchedPhone = (data['phone'] ?? '').toString().trim();
+      final fetchedAddress = (data['address'] ?? '').toString().trim();
+
+      final providerDisplay = user.providerData
+          .map((p) => (p.displayName ?? '').trim())
+          .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+      final providerEmailFull = user.providerData
+          .map((p) => (p.email ?? '').trim())
+          .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+      final providerEmailPrefix = user.providerData
+          .map((p) => (p.email ?? '').trim())
+          .map((email) => email.contains('@') ? email.split('@').first : email)
+          .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+
+      final resolvedName = <String>[
+        fetchedName,
+        (user.displayName ?? '').trim(),
+        providerDisplay,
+        fetchedEmail.contains('@')
+            ? fetchedEmail.split('@').first
+            : fetchedEmail,
+        providerEmailPrefix,
+        fetchedEmail,
+        (user.email ?? '').trim(),
+        providerEmailFull,
+        fetchedPhone,
+        (user.phoneNumber ?? '').trim(),
+        'Admin',
+      ].firstWhere((v) => v.isNotEmpty, orElse: () => 'Admin');
+
+      final resolvedEmail = <String>[
+        fetchedEmail,
+        (user.email ?? '').trim(),
+        providerEmailFull,
+        providerEmailPrefix,
+      ].firstWhere((v) => v.isNotEmpty, orElse: () => '');
+
+      setState(() {
+        name = resolvedName;
+        email = resolvedEmail;
+        phone = fetchedPhone.isNotEmpty
+            ? fetchedPhone
+            : (user.phoneNumber ?? '').trim();
+        address = fetchedAddress;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +158,7 @@ class _AdminProfileState extends State<AdminProfile> {
                     // 📝 Admin Information Card
                     Card(
                       elevation: 2,
+                      color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -172,11 +221,30 @@ class _AdminProfileState extends State<AdminProfile> {
                           ),
                         ),
                         onPressed: () async {
-                          await Navigator.pushNamed(
+                          final result = await Navigator.pushNamed(
                             context,
-                            Routes.settings,
+                            Routes.editAdminProfile,
+                            arguments: {
+                              'name': name,
+                              'email': email,
+                              'phone': phone,
+                              'address': address,
+                            },
                           );
-                          if (mounted) {
+
+                          if (result != null && result is Map<String, String>) {
+                            final user = _auth.currentUser;
+                            if (user != null) {
+                              await _firestore
+                                  .collection('users')
+                                  .doc(user.uid)
+                                  .update({
+                                'fullName': result['name'],
+                                'email': result['email'],
+                                'phone': result['phone'],
+                                'address': result['address'],
+                              });
+                            }
                             await loadAdminData();
                           }
                         },
@@ -233,4 +301,3 @@ class _AdminProfileState extends State<AdminProfile> {
     );
   }
 }
-

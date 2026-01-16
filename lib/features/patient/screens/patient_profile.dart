@@ -43,7 +43,6 @@ class _PatientProfileState extends State<PatientProfile> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -55,154 +54,204 @@ class _PatientProfileState extends State<PatientProfile> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // 🎨 Profile Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(30),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.accent],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        child: NotificationListener<OverscrollIndicatorNotification>(
+          onNotification: (notification) {
+            notification.disallowIndicator();
+            return true;
+          },
+          child: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              children: [
+                // 🎨 Profile Header
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppColors.primary, AppColors.accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(28),
+                      bottomRight: Radius.circular(28),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        name.isEmpty ? 'User' : name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          email,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
-                  children: [
-                    // 👤 Profile Avatar
-                    const CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.person,
-                        size: 50,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      name.isEmpty ? 'User' : name,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      email,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
 
-              // 📋 Profile Information Cards
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    // 📝 Personal Information Card
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
+                // 📋 Profile Information Cards
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(
-                                  Icons.person_outline,
-                                  color: AppColors.primary,
+                                Row(
+                                  children: const [
+                                    Icon(Icons.person_outline,
+                                        color: AppColors.primary),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Personal Information',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Personal Information',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Updated',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 16),
-                            _buildInfoRow(Icons.person, 'Name', name),
-                            const SizedBox(height: 12),
-                            _buildInfoRow(Icons.email, 'Email', email),
-                            const SizedBox(height: 12),
-                            _buildInfoRow(Icons.phone, 'Phone', phone.isEmpty ? 'Not set' : phone),
-                            const SizedBox(height: 12),
-                            _buildInfoRow(Icons.location_on, 'Address', address.isEmpty ? 'Not set' : address),
+                            _buildInfoRow(Icons.person, 'Name',
+                                name.isEmpty ? 'Not set' : name),
+                            _buildDivider(),
+                            _buildInfoRow(Icons.email, 'Email',
+                                email.isEmpty ? 'Not set' : email),
+                            _buildDivider(),
+                            _buildInfoRow(Icons.phone, 'Phone',
+                                phone.isEmpty ? 'Not set' : phone),
+                            _buildDivider(),
+                            _buildInfoRow(Icons.location_on, 'Address',
+                                address.isEmpty ? 'Not set' : address),
+                            const SizedBox(height: 10),
                           ],
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // ✏️ Edit Profile Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        label: const Text(
-                          'Edit Profile',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                      const SizedBox(height: 22),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          label: const Text(
+                            'Edit Profile',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        onPressed: () async {
-                          final result = await Navigator.pushNamed(
-                            context,
-                            Routes.editPatientProfile,
-                            arguments: {
-                              'name': name,
-                              'email': email,
-                              'phone': phone,
-                              'address': address,
-                            },
-                          );
+                          onPressed: () async {
+                            final result = await Navigator.pushNamed(
+                              context,
+                              Routes.editPatientProfile,
+                              arguments: {
+                                'name': name,
+                                'email': email,
+                                'phone': phone,
+                                'address': address,
+                              },
+                            );
 
-                          if (result != null && result is Map<String, String>) {
-                            // Update Firestore & refresh UI
-                            final user = _auth.currentUser;
-                            if (user != null) {
-                              await _firestore.collection('users').doc(user.uid).update({
-                                'fullName': result['name'],
-                                'email': result['email'],
-                                'phone': result['phone'],
-                                'address': result['address'],
-                              });
+                            if (result != null &&
+                                result is Map<String, String>) {
+                              final user = _auth.currentUser;
+                              if (user != null) {
+                                await _firestore
+                                    .collection('users')
+                                    .doc(user.uid)
+                                    .update({
+                                  'fullName': result['name'],
+                                  'email': result['email'],
+                                  'phone': result['phone'],
+                                  'address': result['address'],
+                                });
+                              }
+                              await loadUserData();
                             }
-                            await loadUserData();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 12),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -213,7 +262,15 @@ class _PatientProfileState extends State<PatientProfile> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Container(
+          height: 34,
+          width: 34,
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.primary),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -224,21 +281,28 @@ class _PatientProfileState extends State<PatientProfile> {
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 10),
+      child: Divider(height: 1, thickness: 0.6),
     );
   }
 }

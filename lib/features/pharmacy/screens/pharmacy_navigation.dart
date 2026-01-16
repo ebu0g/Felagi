@@ -4,10 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/pharmacy.dart';
 import 'pharmacy_home.dart';
 import 'manage_stock.dart';
-import 'Pharmacy_profile_screen.dart';
+import 'pharmacy_profile_screen.dart';
 
 class PharmacyNavigation extends StatefulWidget {
-  const PharmacyNavigation({super.key});
+  final int? initialIndex;
+  final String? initialMedicineId;
+
+  const PharmacyNavigation(
+      {super.key, this.initialIndex, this.initialMedicineId});
 
   @override
   State<PharmacyNavigation> createState() => _PharmacyNavigationState();
@@ -17,12 +21,8 @@ class _PharmacyNavigationState extends State<PharmacyNavigation> {
   int _currentIndex = 0;
   Pharmacy? _pharmacy;
   bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPharmacy();
-  }
+  String? _initialMedicineId;
+  bool _initialIdConsumed = false;
 
   Future<void> _loadPharmacy() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -58,6 +58,11 @@ class _PharmacyNavigationState extends State<PharmacyNavigation> {
   }
 
   Widget _getCurrentScreen() {
+    final idForStock = _initialIdConsumed ? null : _initialMedicineId;
+    if (idForStock != null) {
+      _initialIdConsumed = true; // consume deep-link only once
+    }
+
     switch (_currentIndex) {
       case 0:
         return const PharmacyHome();
@@ -65,12 +70,23 @@ class _PharmacyNavigationState extends State<PharmacyNavigation> {
         if (_pharmacy == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        return ManageStockScreen(pharmacy: _pharmacy!);
+        return ManageStockScreen(
+          pharmacy: _pharmacy!,
+          initialMedicineId: idForStock,
+        );
       case 2:
         return const PharmacyProfileScreen();
       default:
         return const PharmacyHome();
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPharmacy();
+    _initialMedicineId = widget.initialMedicineId;
+    _currentIndex = widget.initialIndex ?? 0;
   }
 
   @override
@@ -108,4 +124,3 @@ class _PharmacyNavigationState extends State<PharmacyNavigation> {
     );
   }
 }
-

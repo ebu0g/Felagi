@@ -1,6 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+        // Helper to check admin role from the users collection
+        function isAdmin() {
+          return isAuthenticated() &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+        }
     
     // Helper function to check if user is authenticated
     function isAuthenticated() {
@@ -16,8 +21,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isOwner(userId) || isAdmin();
       
       // Medicines subcollection - users can manage their own medicines
       match /medicines/{medicineId} {
@@ -31,6 +36,22 @@ service cloud.firestore {
     // CollectionGroup query for medicines (search functionality)
     // This allows searching across all medicines subcollections
     match /{path=**}/medicines/{medicineId} {
+      allow read: if isAuthenticated();
+    }
+
+    // Support requests (pharmacy rejections, appeals, etc.)
+    // - Authenticated users can create/update their own ticket document under support_requests/rejection_<uid>
+    // - Admins can read all (currently modeled as email contains 'admin')
+    match /support_requests/{requestId} {
+      function isOwnerOfRequest() {
+        // Accept either explicit uid field or doc id pattern rejection_<uid>
+        return isAuthenticated() && (
+          request.resource.data.uid == request.auth.uid ||
+          requestId == 'rejection_' + request.auth.uid
+        );
+      }
+
+      allow create, update: if isOwnerOfRequest() || isAdmin();
       allow read: if isAuthenticated();
     }
   }

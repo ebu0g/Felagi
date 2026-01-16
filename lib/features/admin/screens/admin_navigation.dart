@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/colors.dart';
 import '../controllers/admin_controller.dart';
 import 'admin_home.dart';
 import 'admin_profile.dart';

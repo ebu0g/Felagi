@@ -30,20 +30,88 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
 
   Future<void> loadPharmacyData() async {
     final user = _auth.currentUser;
-    if (user != null) {
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() {
-          name = doc['fullName'] ?? '';
-          email = doc['email'] ?? '';
-          phone = doc['phone'] ?? '';
-          address = doc['address'] ?? '';
-          isLoading = false;
-        });
-      }
+    if (user == null) {
+      setState(() => isLoading = false);
+      return;
     }
-  }
 
+    final doc = await _firestore.collection('users').doc(user.uid).get();
+    if (!doc.exists) {
+      setState(() => isLoading = false);
+      return;
+    }
+
+    final data = doc.data() ?? {};
+    final fetchedName = (data['fullName'] ??
+            data['full_name'] ??
+            data['pharmacyName'] ??
+            data['name'] ??
+            '')
+        .toString()
+        .trim();
+    final fetchedEmail = (data['email'] ?? '').toString().trim();
+    final fetchedPhone = (data['phone'] ?? '').toString().trim();
+    final fetchedAddress = (data['address'] ?? '').toString().trim();
+
+    final providerEmailFull = user.providerData
+        .map((p) => (p.email ?? '').trim())
+        .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+    final providerEmailPrefix = user.providerData
+        .map((p) => (p.email ?? '').trim())
+        .map((email) => email.contains('@') ? email.split('@').first : email)
+        .firstWhere((v) => v.isNotEmpty, orElse: () => '');
+
+    final displayNameRaw = (user.displayName ?? '').trim();
+    final displayNameIsGeneric = displayNameRaw.isEmpty ||
+        displayNameRaw.toLowerCase().contains('pharmacy') ||
+        displayNameRaw.toLowerCase().contains('hub');
+    final fetchedNameIsGeneric = fetchedName.isEmpty ||
+        fetchedName.toLowerCase().contains('pharmacy') ||
+        fetchedName.toLowerCase().contains('hub');
+
+    final safeFetchedName = fetchedNameIsGeneric ? '' : fetchedName;
+    final emailFull = (user.email ?? '').trim();
+    final emailPrefix =
+        emailFull.contains('@') ? emailFull.split('@').first.trim() : emailFull;
+    final fetchedEmailPrefix = fetchedEmail.contains('@')
+        ? fetchedEmail.split('@').first.trim()
+        : fetchedEmail;
+
+    final resolvedName = <String>[
+      safeFetchedName,
+      fetchedEmailPrefix,
+      emailPrefix,
+      fetchedEmail,
+      emailFull,
+      providerEmailPrefix,
+      providerEmailFull,
+      displayNameIsGeneric ? '' : displayNameRaw,
+      fetchedPhone,
+      (user.phoneNumber ?? '').trim(),
+      user.uid,
+      'Pharmacy',
+    ].firstWhere((v) => v.isNotEmpty, orElse: () => 'Pharmacy');
+
+    debugPrint(
+        'PharmacyProfile name resolve -> fetched="$fetchedName", fetchedGeneric=$fetchedNameIsGeneric, email="$fetchedEmail", authEmail="$emailFull", providerEmailFull="$providerEmailFull", providerEmailPrefix="$providerEmailPrefix", phone="$fetchedPhone"');
+
+    final resolvedEmail = <String>[
+      fetchedEmail,
+      emailFull,
+      providerEmailFull,
+      providerEmailPrefix,
+    ].firstWhere((v) => v.isNotEmpty, orElse: () => '');
+
+    setState(() {
+      name = resolvedName;
+      email = resolvedEmail;
+      phone = fetchedPhone.isNotEmpty
+          ? fetchedPhone
+          : (user.phoneNumber ?? '').trim();
+      address = fetchedAddress;
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +178,7 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                   children: [
                     Card(
                       elevation: 2,
+                      color: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -186,7 +255,10 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                           if (result != null && result is Map<String, String>) {
                             final user = _auth.currentUser;
                             if (user != null) {
-                              await _firestore.collection('users').doc(user.uid).update({
+                              await _firestore
+                                  .collection('users')
+                                  .doc(user.uid)
+                                  .update({
                                 'fullName': result['name'],
                                 'email': result['email'],
                                 'phone': result['phone'],
@@ -206,7 +278,6 @@ class _PharmacyProfileScreenState extends State<PharmacyProfileScreen> {
                     ),
 
                     const SizedBox(height: 16),
-
                   ],
                 ),
               ),

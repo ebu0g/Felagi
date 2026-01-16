@@ -1,44 +1,72 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/colors.dart';
 
-class EditPatientProfile extends StatefulWidget {
-  const EditPatientProfile({super.key});
+class EditAdminProfileScreen extends StatefulWidget {
+  final String name;
+  final String email;
+  final String address;
+  final String phone;
+
+  const EditAdminProfileScreen({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.address,
+    required this.phone,
+  });
 
   @override
-  State<EditPatientProfile> createState() => _EditPatientProfileState();
+  State<EditAdminProfileScreen> createState() => _EditAdminProfileScreenState();
 }
 
-class _EditPatientProfileState extends State<EditPatientProfile> {
+class _EditAdminProfileScreenState extends State<EditAdminProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _emailController;
-  late TextEditingController _phoneController;
   late TextEditingController _addressController;
-  bool _initialized = false;
+  late TextEditingController _phoneController;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_initialized) return;
-
-    // Receive arguments from PatientProfile
-    final args =
-        ModalRoute.of(context)!.settings.arguments as Map<String, String>;
-
-    _nameController = TextEditingController(text: args['name'] ?? '');
-    _emailController = TextEditingController(text: args['email'] ?? '');
-    _phoneController = TextEditingController(text: args['phone'] ?? '');
-    _addressController = TextEditingController(text: args['address'] ?? '');
-    _initialized = true;
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.name);
+    _emailController = TextEditingController(text: widget.email);
+    _addressController = TextEditingController(text: widget.address);
+    _phoneController = TextEditingController(text: widget.phone);
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _addressController.dispose();
+    _phoneController.dispose();
     super.dispose();
+  }
+
+  void _saveChanges() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.pop(context, {
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'address': _addressController.text.trim(),
+        'phone': _phoneController.text.trim(),
+      });
+    }
+  }
+
+  InputDecoration _fieldDecoration(
+      {required String hint, required IconData icon}) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon),
+      filled: true,
+      fillColor: Colors.grey[50],
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    );
   }
 
   @override
@@ -47,10 +75,8 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Edit Profile',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Edit Admin Profile',
+            style: TextStyle(color: Colors.white)),
         backgroundColor: AppColors.primary,
         elevation: 0,
       ),
@@ -88,9 +114,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                     TextFormField(
                       controller: _nameController,
                       decoration: _fieldDecoration(
-                        hint: 'Full name',
-                        icon: Icons.person,
-                      ),
+                          hint: 'Full name', icon: Icons.person),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Name required'
                           : null,
@@ -99,10 +123,8 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: _fieldDecoration(
-                        hint: 'Email',
-                        icon: Icons.email,
-                      ),
+                      decoration:
+                          _fieldDecoration(hint: 'Email', icon: Icons.email),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Email required'
                           : null,
@@ -112,9 +134,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                       controller: _addressController,
                       keyboardType: TextInputType.streetAddress,
                       decoration: _fieldDecoration(
-                        hint: 'Street, city, etc.',
-                        icon: Icons.location_on,
-                      ),
+                          hint: 'Street, city, etc.', icon: Icons.location_on),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Address required'
                           : null,
@@ -124,9 +144,7 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: _fieldDecoration(
-                        hint: 'Phone number',
-                        icon: Icons.phone,
-                      ),
+                          hint: 'Phone number', icon: Icons.phone),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Phone required'
                           : null,
@@ -161,31 +179,6 @@ class _EditPatientProfileState extends State<EditPatientProfile> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _saveChanges() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pop(context, {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'address': _addressController.text.trim(),
-      });
-    }
-  }
-
-  InputDecoration _fieldDecoration(
-      {required String hint, required IconData icon}) {
-    return InputDecoration(
-      hintText: hint,
-      prefixIcon: Icon(icon),
-      filled: true,
-      fillColor: Colors.grey[50],
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
       ),
     );
   }

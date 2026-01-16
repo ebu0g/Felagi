@@ -14,11 +14,19 @@ class PatientNavigation extends StatefulWidget {
 class _PatientNavigationState extends State<PatientNavigation> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    PatientHome(),
-    SearchMedicine(),
-    PatientProfile(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      PatientHome(
+        onOpenSearchTab: () => setState(() => _currentIndex = 1),
+      ),
+      const SearchMedicine(),
+      const PatientProfile(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {

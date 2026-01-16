@@ -14,9 +14,9 @@ class FelagiApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       routes: appRoutes,
       onGenerateRoute: onGenerateRoute,
-      initialRoute: FirebaseAuth.instance.currentUser == null
-          ? Routes.home
-          : Routes.patientNav,
+      // Always start at the home screen (login/register) so users see
+      // the entry UI instead of being automatically routed into a role.
+      initialRoute: Routes.home,
     );
   }
 }

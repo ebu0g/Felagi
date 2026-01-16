@@ -48,6 +48,7 @@ class HomeScreen extends StatelessWidget {
               // Login Button
               CustomButton(
                 text: 'Login',
+                textColor: Colors.white,
                 onPressed: () {
                   Navigator.pushNamed(context, Routes.login);
                 },

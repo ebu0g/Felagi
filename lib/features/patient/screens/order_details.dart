@@ -9,7 +9,10 @@ class OrderDetailsScreen extends StatelessWidget {
         ModalRoute.of(context)!.settings.arguments as Map<String, String>;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Order Details')),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Order Details'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Card(

@@ -32,7 +32,6 @@ class _AdminHomeState extends State<AdminHome> {
   Future<Map<String, dynamic>?> _fetchAdminData() async {
     final user = _auth.currentUser;
     if (user == null) return null;
-
     final doc = await _firestore.collection('users').doc(user.uid).get();
     return doc.data();
   }
@@ -125,7 +124,7 @@ class _AdminHomeState extends State<AdminHome> {
                                 selected: _filter == f,
                                 onSelected: (_) => setState(() => _filter = f),
                                 selectedColor:
-                                    AppColors.primary.withOpacity(0.14),
+                                    AppColors.primary.withValues(alpha: 0.14),
                                 labelStyle: TextStyle(
                                   color: _filter == f
                                       ? AppColors.primary
@@ -299,40 +298,36 @@ class _AdminHomeState extends State<AdminHome> {
                                                               builder: (dctx) =>
                                                                   AlertDialog(
                                                                 title: const Text(
-                                                                    'Dismiss feedback'),
+                                                                    'Dismiss ticket'),
                                                                 content: const Text(
-                                                                    'Cancel this feedback after review?'),
+                                                                    'Mark this feedback as reviewed and close the notification?'),
                                                                 actions: [
                                                                   TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            dctx,
-                                                                            false),
+                                                                    onPressed: () => Navigator.pop(
+                                                                        dctx,
+                                                                        false),
                                                                     child: const Text(
-                                                                        'Keep'),
+                                                                        'Cancel'),
                                                                   ),
                                                                   TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                            dctx,
-                                                                            true),
+                                                                    onPressed: () => Navigator.pop(
+                                                                        dctx,
+                                                                        true),
                                                                     child: const Text(
-                                                                        'Cancel feedback'),
+                                                                        'Close'),
                                                                   ),
                                                                 ],
                                                               ),
                                                             ) ??
                                                             false;
                                                     if (!confirmed) return;
-                                                    await adminCtrl
-                                                        .closeSupportRequest(
-                                                      (it['id'] ?? '')
-                                                          .toString(),
+                                                    await adminCtrl.closeSupportRequest(
+                                                      (it['id'] ?? '').toString(),
                                                     );
                                                   },
-                                                  child: const Text('Cancel'),
+                                                  child: const Text('Close'),
                                                 ),
-                                                const SizedBox(width: 6),
+                                                const SizedBox(width: 4),
                                                 OutlinedButton(
                                                   style:
                                                       OutlinedButton.styleFrom(
@@ -340,11 +335,10 @@ class _AdminHomeState extends State<AdminHome> {
                                                         Colors.orange,
                                                     side: const BorderSide(
                                                         color: Colors.orange),
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 6,
-                                                    ),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                            horizontal: 10,
+                                                            vertical: 6),
                                                     shape:
                                                         RoundedRectangleBorder(
                                                       borderRadius:
@@ -360,6 +354,239 @@ class _AdminHomeState extends State<AdminHome> {
                                                   child: const Text('Open'),
                                                 ),
                                               ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          (it['message'] ?? '').toString(),
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                        if ((it['appealMessage'] ?? '')
+                                            .toString()
+                                            .isNotEmpty)
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 6),
+                                            child: Text(
+                                              'Appeal: ${it['appealMessage']}',
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  fontStyle: FontStyle.italic),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  if (adminCtrl.openSupportCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          adminCtrl.openSupportCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  await AuthController().logout();
+                  if (mounted) {
+                    navigator.pushNamedAndRemoveUntil(
+                      Routes.home,
+                      (route) => false,
+                    );
+                  }
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                ],
+                                              ),
+                                            ),
+                                            if (adminCtrl.isLoading)
+                                              const SliverFillRemaining(
+                                                hasScrollBody: false,
+                                                child: Center(child: CircularProgressIndicator()),
+                                              )
+                                            else if (pharmacies.isEmpty)
+                                              const SliverFillRemaining(
+                                                hasScrollBody: false,
+                                                child: Center(
+                                                  child: Text(
+                                                    'No pharmacies found',
+                                                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                                                  ),
+                                                ),
+                                              )
+                                            else
+                                              SliverList(
+                                                delegate: SliverChildBuilderDelegate(
+                                                  (ctx, index) => _buildPharmacyCard(
+                                                    adminCtrl,
+                                                    pharmacies[index],
+                                                  ),
+                                                  childCount: pharmacies.length,
+                                                ),
+                                              ),
+                                            const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+          bottomRight: Radius.circular(30),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FutureBuilder<Map<String, dynamic>?>(
+                  future: _ensureAdminFuture(),
+                  builder: (context, snapshot) {
+                    final displayName =
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? 'Loading...'
+                            : _resolveAdminName(snapshot.data);
+                    return Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Approve or reject pharmacy accounts',
+                  style: TextStyle(fontSize: 18, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      adminCtrl.openSupportCount > 0
+                          ? Icons.notifications_active
+                          : Icons.notifications_none,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      if (adminCtrl.openSupportCount == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('No new alerts'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        return;
+                      }
+                      showModalBottomSheet(
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
+                        ),
+                        builder: (ctx) {
+                          final items = adminCtrl.openSupportRequests;
+                          return SafeArea(
+                            child: ListView.separated(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: items.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 8),
+                              itemBuilder: (_, i) {
+                                final it = items[i];
+                                return Card(
+                                  elevation: 1,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.support_agent,
+                                                size: 18),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                (it['name'] ?? 'Unknown')
+                                                    .toString(),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                            OutlinedButton(
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor: Colors.orange,
+                                                side: const BorderSide(
+                                                    color: Colors.orange),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 6),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(ctx).pop();
+                                                _openPharmacyFromSupport(
+                                                    context, adminCtrl, it);
+                                              },
+                                              child: const Text('Open'),
                                             ),
                                           ],
                                         ),
@@ -500,7 +727,7 @@ class _AdminHomeState extends State<AdminHome> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.12),
+                          color: statusColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -628,7 +855,7 @@ class _AdminHomeState extends State<AdminHome> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
+                    color: statusColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -714,7 +941,7 @@ class _AdminHomeState extends State<AdminHome> {
             height: 32,
             width: 32,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 16, color: AppColors.primary),
@@ -747,7 +974,7 @@ class _AdminHomeState extends State<AdminHome> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
+                  color: color.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(Icons.analytics, color: color, size: 18),
@@ -787,13 +1014,13 @@ class _AdminHomeState extends State<AdminHome> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showApproveDialog(
-    BuildContext context,
+                                labelStyle: TextStyle(
+                                  color: _filter == f
+                                      ? AppColors.primary
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
     AdminController controller,
     String uid,
   ) {

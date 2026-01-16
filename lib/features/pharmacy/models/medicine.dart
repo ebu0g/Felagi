@@ -7,6 +7,7 @@ class Medicine {
   String name;
   double price;
   int quantity;
+  String category;
   Pharmacy? pharmacy; // Parent pharmacy
 
   Medicine({
@@ -14,6 +15,7 @@ class Medicine {
     required this.name,
     required this.price,
     required this.quantity,
+    required this.category,
     this.pharmacy,
   });
 
@@ -24,6 +26,7 @@ class Medicine {
       name: data['name'],
       price: data['price']?.toDouble() ?? 0.0,
       quantity: data['quantity'] ?? 0,
+      category: (data['category'] ?? 'Uncategorized').toString(),
       pharmacy: pharmacy,
     );
   }

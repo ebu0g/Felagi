@@ -60,7 +60,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Profile", style: TextStyle(color: Colors.white),),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Admin Profile",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: AppColors.primary,
       ),
       body: Padding(
@@ -116,31 +120,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onPressed: () async {
                   final user = _auth.currentUser;
                   if (user != null) {
+                    // Capture UI handlers before async gaps
+                    final messenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
                     try {
-                      await _firestore.collection('users').doc(user.uid).update({
+                      await _firestore
+                          .collection('users')
+                          .doc(user.uid)
+                          .update({
                         'fullName': nameController.text.trim(),
                         'email': emailController.text.trim(),
                         'phone': phoneController.text.trim(),
                         'address': addressController.text.trim(),
                       });
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Profile updated")),
-                        );
-                        Navigator.pop(context);
-                      }
+                      if (!mounted) return;
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text("Profile updated")),
+                      );
+                      navigator.pop();
                     } catch (e) {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Error: ${e.toString()}")),
-                        );
-                      }
+                      if (!mounted) return;
+                      messenger.showSnackBar(
+                        SnackBar(content: Text("Error: ${e.toString()}")),
+                      );
                     }
                   }
                 },
                 child: const Text(
                   "Save Changes",
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
             )

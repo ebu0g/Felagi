@@ -52,9 +52,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       await authController.resetPassword(email: email);
-      
+
       if (!mounted) return;
-      
+
       // Show success dialog with helpful tips
       showDialog(
         context: context,
@@ -89,6 +89,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Navigator.pop(context); // Close dialog
                 Navigator.pop(context); // Go back to login screen
               },
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
               child: const Text('OK'),
             ),
           ],
@@ -96,15 +99,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      
+
       // Show error dialog with more helpful messages
       String errorMessage = e.toString();
-      if (errorMessage.contains('user-not-found') || errorMessage.contains('invalid-email')) {
-        errorMessage = 'This email address is not registered. Please check your email or create an account.';
+      if (errorMessage.contains('user-not-found') ||
+          errorMessage.contains('invalid-email')) {
+        errorMessage =
+            'This email address is not registered. Please check your email or create an account.';
       } else if (errorMessage.contains('network')) {
-        errorMessage = 'Network error. Please check your internet connection and try again.';
+        errorMessage =
+            'Network error. Please check your internet connection and try again.';
       }
-      
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -113,6 +119,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
               child: const Text('OK'),
             ),
           ],
@@ -131,7 +140,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Forgot Password',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: AppColors.primary,
       ),
       body: Padding(
@@ -177,6 +190,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+              ),
               child: const Text('Back to Login'),
             ),
           ],
@@ -185,4 +201,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-

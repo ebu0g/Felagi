@@ -15,6 +15,7 @@ class ApprovePharmacyScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Approve Pharmacies',
           style: TextStyle(color: Colors.white),
@@ -105,7 +106,7 @@ class ApprovePharmacyScreen extends StatelessWidget {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
@@ -115,17 +116,18 @@ class ApprovePharmacyScreen extends StatelessWidget {
                                         onPressed: () async {
                                           final documentUrl =
                                               pharmacy['document'];
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          final uri = Uri.parse(documentUrl);
                                           try {
-                                            if (await canLaunchUrl(
-                                                Uri.parse(documentUrl))) {
+                                            if (await canLaunchUrl(uri)) {
                                               await launchUrl(
-                                                Uri.parse(documentUrl),
+                                                uri,
                                                 mode: LaunchMode
                                                     .externalApplication,
                                               );
                                             } else {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              messenger.showSnackBar(
                                                 const SnackBar(
                                                   content: Text(
                                                       'Could not open document. Please check the link.'),
@@ -133,8 +135,7 @@ class ApprovePharmacyScreen extends StatelessWidget {
                                               );
                                             }
                                           } catch (e) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
+                                            messenger.showSnackBar(
                                               SnackBar(
                                                 content: Text(
                                                     'Error opening document: $e'),
@@ -146,7 +147,7 @@ class ApprovePharmacyScreen extends StatelessWidget {
                                         label: const Text(
                                             'View Document on Google Drive'),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.blue,
+                                          backgroundColor: AppColors.primary,
                                           foregroundColor: Colors.white,
                                         ),
                                       ),
@@ -159,7 +160,7 @@ class ApprovePharmacyScreen extends StatelessWidget {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.1),
+                                    color: Colors.red.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(color: Colors.red),
                                   ),

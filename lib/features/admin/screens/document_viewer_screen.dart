@@ -8,7 +8,10 @@ class DocumentViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pharmacy Document')),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Pharmacy Document'),
+      ),
       body: Center(
         child: ElevatedButton(
           onPressed: () async {
